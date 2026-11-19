@@ -1,0 +1,3148 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>婚禮收禮＆座位速查系統（離線完整版）</title>
+  <style>
+    /* ==========================================================================
+       1. 全域變數與基礎重設（完全內建 CSS，不依賴外部網路與 CDN）
+       ========================================================================== */
+    :root {
+      --bg-page: #faf6ee;
+      --bg-surface: #ffffff;
+      --bg-cream-50: #fdfbf7;
+      --bg-cream-100: #faf6ee;
+      --bg-cream-200: #f2ead9;
+      --border-cream: #e5d7be;
+      --border-stone: #d6d3d1;
+      --text-main: #1c1917;
+      --text-body: #292524;
+      --text-muted: #57534e;
+      --text-subtle: #78716c;
+      --amber-50: #fffbeb;
+      --amber-100: #fef3c7;
+      --amber-200: #fde68a;
+      --amber-300: #fcd34d;
+      --amber-600: #d97706;
+      --amber-700: #b45309;
+      --amber-800: #92400e;
+      --amber-900: #78350f;
+      --indigo-50: #eef2ff;
+      --indigo-100: #e0e7ff;
+      --indigo-200: #c7d2fe;
+      --indigo-600: #4f46e5;
+      --indigo-700: #4338ca;
+      --indigo-800: #3730a3;
+      --indigo-950: #1e1b4b;
+      --rose-50: #fff1f2;
+      --rose-100: #ffe4e6;
+      --rose-200: #fecdd3;
+      --rose-600: #e11d48;
+      --rose-700: #be123c;
+      --rose-800: #9f1239;
+      --rose-900: #881337;
+      --emerald-50: #ecfdf5;
+      --emerald-100: #d1fae5;
+      --emerald-200: #a7f3d0;
+      --emerald-300: #6ee7b7;
+      --emerald-800: #065f46;
+      --emerald-900: #064e3b;
+      --sky-50: #f0f9ff;
+      --sky-100: #e0f2fe;
+      --sky-200: #bae6fd;
+      --sky-300: #7dd3fc;
+      --sky-800: #075985;
+      --sky-900: #0c4a6e;
+      --stone-50: #fafaf9;
+      --stone-100: #f5f5f4;
+      --stone-200: #e7e5e4;
+      --stone-300: #d6d3d1;
+      --stone-700: #44403c;
+      --stone-800: #292524;
+      --stone-900: #1c1917;
+      --shadow-xs: 0 1px 2px rgba(28, 25, 23, 0.05);
+      --shadow-sm: 0 2px 6px rgba(28, 25, 23, 0.07);
+      --shadow-lg: 0 10px 25px rgba(28, 25, 23, 0.14);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background-color: var(--bg-page);
+      color: var(--text-body);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", "Segoe UI", Roboto, sans-serif;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    button, input, select {
+      font-family: inherit;
+    }
+
+    svg {
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+
+    @media (min-width: 640px) {
+      .container {
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+    }
+
+    /* ==========================================================================
+       2. 頂部標題與 Excel 檔案操作列
+       ========================================================================== */
+    .app-header {
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-cream);
+      box-shadow: var(--shadow-xs);
+    }
+
+    .header-inner {
+      padding-top: 14px;
+      padding-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    @media (min-width: 768px) {
+      .header-inner {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--amber-600), var(--amber-800));
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-xs);
+      flex-shrink: 0;
+    }
+
+    .brand-title-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--text-main);
+      letter-spacing: -0.01em;
+    }
+
+    @media (min-width: 640px) {
+      .brand-title {
+        font-size: 1.45rem;
+      }
+    }
+
+    .source-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background-color: var(--amber-100);
+      color: var(--amber-800);
+      border: 1px solid var(--amber-200);
+    }
+
+    .source-badge.is-imported {
+      background-color: var(--emerald-100);
+      color: var(--emerald-800);
+      border-color: var(--emerald-200);
+    }
+
+    .brand-subtitle {
+      margin: 3px 0 0;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 42px;
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.15s ease, transform 0.1s ease;
+      text-decoration: none;
+      user-select: none;
+      flex: 1 1 auto;
+    }
+
+    @media (min-width: 640px) {
+      .btn-action {
+        flex: 0 0 auto;
+      }
+    }
+
+    .btn-action:active {
+      transform: scale(0.98);
+    }
+
+    .btn-sample {
+      background-color: var(--bg-cream-100);
+      color: var(--stone-700);
+      border: 1px solid var(--border-cream);
+    }
+
+    .btn-sample:hover {
+      background-color: var(--bg-cream-200);
+    }
+
+    .btn-import {
+      background-color: var(--stone-900);
+      color: #ffffff;
+      border: 1px solid var(--stone-900);
+      box-shadow: var(--shadow-xs);
+    }
+
+    .btn-import:hover {
+      background-color: var(--stone-800);
+    }
+
+    .btn-reset-sample {
+      background-color: var(--rose-50);
+      color: var(--rose-800);
+      border: 1px solid var(--rose-200);
+    }
+
+    .btn-reset-sample:hover {
+      background-color: var(--rose-100);
+    }
+
+    /* ==========================================================================
+       3. 置頂固定：搜尋與多欄位篩選控制區
+       ========================================================================== */
+    .filter-bar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background-color: rgba(253, 251, 247, 0.96);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border-cream);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .filter-inner {
+      padding-top: 12px;
+      padding-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* 第一排：搜尋框（字體設為 16px 防止 iOS Safari 點擊時自動放大畫面） */
+    .search-box {
+      position: relative;
+      width: 100%;
+    }
+
+    .search-icon {
+      position: absolute;
+      top: 50%;
+      left: 14px;
+      transform: translateY(-50%);
+      color: var(--amber-700);
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 44px 10px 44px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      background-color: var(--bg-surface);
+      border: 2px solid var(--border-stone);
+      border-radius: 16px;
+      outline: none;
+      box-shadow: var(--shadow-xs);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .search-input::placeholder {
+      font-weight: 400;
+      color: #a8a29e;
+      font-size: 0.92rem;
+    }
+
+    .search-input:focus {
+      border-color: var(--amber-600);
+      box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.15);
+    }
+
+    .input-clear-btn {
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
+      width: 34px;
+      height: 34px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .input-clear-btn:hover {
+      background-color: var(--stone-100);
+      color: var(--text-main);
+    }
+
+    /* 第二排：篩選控制列 */
+    .filter-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    @media (min-width: 960px) {
+      .filter-controls {
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+
+    /* 1. 男方 / 女方 左右各半雙拼按鈕 */
+    .side-toggle-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      width: 100%;
+      min-height: 44px;
+      border-radius: 12px;
+      border: 2px solid var(--border-stone);
+      background-color: var(--bg-surface);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    @media (min-width: 960px) {
+      .side-toggle-group {
+        width: 210px;
+      }
+    }
+
+    .side-btn {
+      border: none;
+      background-color: var(--bg-surface);
+      color: var(--stone-700);
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .side-btn-groom {
+      border-right: 1px solid var(--border-stone);
+    }
+
+    .side-btn-groom:hover {
+      background-color: var(--indigo-50);
+    }
+
+    .side-btn-bride:hover {
+      background-color: var(--rose-50);
+    }
+
+    .side-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .side-dot-groom {
+      background-color: var(--indigo-600);
+    }
+
+    .side-dot-bride {
+      background-color: var(--rose-600);
+    }
+
+    .side-btn-groom.is-active {
+      background-color: var(--indigo-700);
+      color: #ffffff;
+      font-weight: 900;
+    }
+
+    .side-btn-groom.is-active .side-dot {
+      background-color: var(--amber-300);
+    }
+
+    .side-btn-bride.is-active {
+      background-color: var(--rose-600);
+      color: #ffffff;
+      font-weight: 900;
+    }
+
+    .side-btn-bride.is-active .side-dot {
+      background-color: var(--amber-300);
+    }
+
+    /* 2. 關係下拉選單 */
+    .select-wrapper {
+      position: relative;
+      width: 100%;
+      flex-shrink: 0;
+    }
+
+    @media (min-width: 960px) {
+      .select-wrapper {
+        width: 200px;
+      }
+    }
+
+    .relation-select {
+      width: 100%;
+      min-height: 44px;
+      appearance: none;
+      -webkit-appearance: none;
+      background-color: var(--bg-surface);
+      border: 2px solid var(--border-stone);
+      border-radius: 12px;
+      padding: 8px 36px 8px 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--stone-700);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .relation-select:focus {
+      border-color: var(--amber-600);
+    }
+
+    .select-chevron {
+      position: absolute;
+      top: 50%;
+      right: 12px;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    /* 3. 姓名注音分組複合輸入＋下拉選單 */
+    .zhuyin-combo {
+      position: relative;
+      width: 100%;
+      flex-shrink: 0;
+    }
+
+    @media (min-width: 960px) {
+      .zhuyin-combo {
+        width: 250px;
+      }
+    }
+
+    .zhuyin-input {
+      width: 100%;
+      min-height: 44px;
+      background-color: var(--bg-surface);
+      border: 2px solid var(--border-stone);
+      border-radius: 12px;
+      padding: 8px 66px 8px 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+      outline: none;
+    }
+
+    .zhuyin-input::placeholder {
+      font-weight: 500;
+      color: var(--text-subtle);
+    }
+
+    .zhuyin-input:focus {
+      border-color: var(--amber-600);
+    }
+
+    .zhuyin-clear-btn {
+      position: absolute;
+      top: 50%;
+      right: 36px;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .zhuyin-clear-btn:hover {
+      background-color: var(--stone-100);
+      color: var(--text-main);
+    }
+
+    .zhuyin-toggle-btn {
+      position: absolute;
+      top: 50%;
+      right: 4px;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .zhuyin-toggle-btn:hover {
+      background-color: var(--stone-100);
+      color: var(--text-main);
+    }
+
+    .zhuyin-dropdown {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 6px);
+      max-height: 260px;
+      overflow-y: auto;
+      background-color: var(--bg-surface);
+      border: 2px solid var(--stone-200);
+      border-radius: 14px;
+      box-shadow: var(--shadow-lg);
+      z-index: 40;
+      padding: 6px 0;
+    }
+
+    .zhuyin-option-btn {
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: 9px 14px;
+      text-align: left;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-body);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .zhuyin-option-btn:hover {
+      background-color: var(--amber-50);
+    }
+
+    .zhuyin-option-btn.is-selected {
+      background-color: var(--amber-100);
+      color: var(--amber-900);
+    }
+
+    .zhuyin-option-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .zhuyin-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background-color: var(--bg-cream-200);
+      color: var(--text-main);
+      font-size: 0.78rem;
+      font-weight: 900;
+    }
+
+    .count-pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background-color: var(--stone-100);
+      color: var(--text-muted);
+    }
+
+    .dropdown-empty {
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      color: var(--text-subtle);
+      text-align: center;
+    }
+
+    /* 4. 最右側清除按鈕 */
+    .btn-clear-all {
+      width: 100%;
+      min-height: 44px;
+      padding: 8px 18px;
+      border-radius: 12px;
+      border: 1px solid var(--border-stone);
+      background-color: var(--stone-200);
+      color: var(--stone-700);
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    @media (min-width: 960px) {
+      .btn-clear-all {
+        width: auto;
+        margin-left: auto;
+      }
+    }
+
+    .btn-clear-all:hover {
+      background-color: var(--stone-300);
+    }
+
+    .btn-clear-all.has-filters {
+      background-color: var(--amber-700);
+      border-color: var(--amber-700);
+      color: #ffffff;
+      font-weight: 900;
+    }
+
+    .btn-clear-all.has-filters:hover {
+      background-color: var(--amber-800);
+    }
+
+    /* ==========================================================================
+       4. 主內容區：即時統計列與賓客資訊卡片
+       ========================================================================== */
+    .main-content {
+      padding-top: 18px;
+      padding-bottom: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .stats-bar {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-cream);
+      border-radius: 16px;
+      padding: 12px 16px;
+      box-shadow: var(--shadow-xs);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .stats-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stats-label {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .stats-groups {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: var(--text-main);
+    }
+
+    .filter-active-badge {
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background-color: var(--amber-100);
+      color: var(--amber-800);
+    }
+
+    .stats-pills {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .stat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 10px;
+    }
+
+    .stat-chip strong {
+      font-size: 0.98rem;
+      font-weight: 900;
+    }
+
+    .stat-chip-people {
+      background-color: var(--stone-100);
+      color: var(--stone-700);
+    }
+
+    .stat-chip-cake {
+      background-color: var(--amber-50);
+      color: var(--amber-800);
+      border: 1px solid var(--amber-200);
+    }
+
+    .stat-chip-veg {
+      background-color: var(--emerald-50);
+      color: var(--emerald-800);
+      border: 1px solid var(--emerald-200);
+    }
+
+    .stat-chip-chair {
+      background-color: var(--sky-50);
+      color: var(--sky-800);
+      border: 1px solid var(--sky-200);
+    }
+
+    /* 賓客列表與卡片 */
+    .guest-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .guest-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-cream);
+      border-radius: 18px;
+      padding: 14px 16px;
+      box-shadow: var(--shadow-xs);
+      transition: border-color 0.15s ease;
+    }
+
+    .guest-card:hover {
+      border-color: var(--amber-600);
+    }
+
+    .guest-card-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    @media (min-width: 640px) {
+      .guest-card-inner {
+        flex-direction: row;
+        align-items: center;
+        gap: 18px;
+      }
+    }
+
+    /* 座位大字方塊 */
+    .table-box {
+      flex-shrink: 0;
+      border-radius: 14px;
+      padding: 10px 16px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      text-align: center;
+      color: #ffffff;
+      background-color: var(--stone-900);
+      border: 1px solid var(--stone-700);
+      box-shadow: var(--shadow-xs);
+    }
+
+    @media (min-width: 640px) {
+      .table-box {
+        width: 142px;
+        padding: 12px 10px;
+        flex-direction: column;
+        justify-content: center;
+      }
+    }
+
+    .table-box.is-groom {
+      background-color: var(--indigo-950);
+      border-color: var(--indigo-800);
+    }
+
+    .table-box.is-bride {
+      background-color: var(--rose-900);
+      border-color: var(--rose-700);
+    }
+
+    .table-box-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      opacity: 0.85;
+    }
+
+    .table-box-value {
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+    }
+
+    @media (min-width: 640px) {
+      .table-box-value {
+        font-size: 1.5rem;
+        margin-top: 2px;
+      }
+    }
+
+    .guest-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .guest-top-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    @media (min-width: 820px) {
+      .guest-top-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .guest-identity {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .guest-name {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: var(--text-main);
+      letter-spacing: -0.01em;
+    }
+
+    mark.hl {
+      background-color: var(--amber-200);
+      color: #000000;
+      border-radius: 4px;
+      padding: 0 2px;
+      font-weight: 900;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .badge-nickname {
+      background-color: var(--amber-100);
+      color: var(--amber-900);
+      border: 1px solid var(--amber-300);
+    }
+
+    .badge-nickname-prefix {
+      color: var(--amber-700);
+      font-weight: 700;
+    }
+
+    .badge-zhuyin {
+      background-color: var(--bg-cream-200);
+      color: var(--text-body);
+      border: 1px solid var(--border-cream);
+      font-weight: 900;
+    }
+
+    .badge-side-groom {
+      background-color: var(--indigo-100);
+      color: var(--indigo-800);
+      border: 1px solid var(--indigo-200);
+    }
+
+    .badge-side-bride {
+      background-color: var(--rose-100);
+      color: var(--rose-800);
+      border: 1px solid var(--rose-200);
+    }
+
+    .badge-side-neutral {
+      background-color: var(--stone-100);
+      color: var(--stone-700);
+      border: 1px solid var(--stone-200);
+    }
+
+    .badge-relation {
+      background-color: var(--stone-100);
+      color: var(--stone-700);
+      border: 1px solid var(--stone-200);
+      font-weight: 700;
+    }
+
+    /* 接待與餐飲標記 */
+    .guest-needs {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .need-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .need-people {
+      background-color: var(--stone-100);
+      color: var(--text-body);
+      border: 1px solid var(--stone-200);
+    }
+
+    .need-cake-yes {
+      background-color: var(--amber-100);
+      color: var(--amber-900);
+      border: 1px solid var(--amber-300);
+      font-weight: 900;
+    }
+
+    .need-cake-no {
+      background-color: var(--stone-50);
+      color: #a8a29e;
+      border: 1px solid var(--stone-200);
+      font-weight: 600;
+    }
+
+    .need-veg {
+      background-color: var(--emerald-100);
+      color: var(--emerald-900);
+      border: 1px solid var(--emerald-300);
+      font-weight: 900;
+    }
+
+    .need-chair {
+      background-color: var(--sky-100);
+      color: var(--sky-900);
+      border: 1px solid var(--sky-300);
+      font-weight: 900;
+    }
+
+    /* 額外自訂欄位列 */
+    .guest-extras {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--bg-cream-200);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .extra-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      background-color: var(--bg-cream-100);
+      color: var(--stone-700);
+      border: 1px solid var(--border-cream);
+    }
+
+    .extra-tag strong {
+      color: #5e482a;
+      font-weight: 800;
+    }
+
+    /* ==========================================================================
+       5. 空狀態、拖曳遮罩與 Toast 通知
+       ========================================================================== */
+    .empty-box {
+      background-color: var(--bg-surface);
+      border: 2px dashed var(--border-cream);
+      border-radius: 24px;
+      padding: 44px 20px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      width: 54px;
+      height: 54px;
+      margin: 0 auto 12px;
+      border-radius: 16px;
+      background-color: var(--bg-cream-100);
+      color: #a8a29e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .empty-title {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text-body);
+    }
+
+    .empty-desc {
+      margin: 6px 0 0;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    .empty-btn {
+      margin-top: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: none;
+      background-color: var(--amber-700);
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .empty-btn:hover {
+      background-color: var(--amber-800);
+    }
+
+    .drop-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background-color: rgba(28, 25, 23, 0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      pointer-events: none;
+    }
+
+    .drop-card {
+      background-color: var(--bg-surface);
+      border: 4px dashed var(--amber-600);
+      border-radius: 24px;
+      padding: 36px 24px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 16px;
+      left: 16px;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast-item {
+      pointer-events: auto;
+      max-width: 380px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background-color: var(--stone-900);
+      color: #ffffff;
+      border: 1px solid var(--stone-700);
+      box-shadow: var(--shadow-lg);
+      font-size: 0.875rem;
+      font-weight: 700;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .toast-item.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast-item.is-error {
+      background-color: var(--rose-700);
+      border-color: var(--rose-800);
+    }
+
+    .toast-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--amber-300);
+      flex-shrink: 0;
+    }
+
+    .toast-item.is-error .toast-dot {
+      background-color: var(--rose-200);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 拖曳匯入 Excel 的全螢幕視覺提示遮罩 -->
+  <div id="dropOverlay" class="drop-overlay hidden">
+    <div class="drop-card">
+      <div class="empty-icon" style="background-color: var(--amber-100); color: var(--amber-700); width: 64px; height: 64px;">
+        <svg width="34" height="34" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+      <p style="margin: 0; font-size: 1.35rem; font-weight: 900; color: var(--text-main);">放開即可匯入賓客名單</p>
+      <p style="margin: 6px 0 0; font-size: 0.875rem; color: var(--text-muted);">支援離線讀取 .xlsx 與 .csv 格式檔案</p>
+    </div>
+  </div>
+
+  <!-- 輕量提示訊息 Toast (取代 alert) -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- 頂部標題與 Excel 檔案操作列 -->
+  <header class="app-header">
+    <div class="container header-inner">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title-row">
+            <h1 class="brand-title">婚禮收禮＆座位速查系統</h1>
+            <span id="dataSourceBadge" class="source-badge">內建範例名單 (16筆)</span>
+          </div>
+          <p class="brand-subtitle">離線完整版：免網路可用、支援姓名與綽號多字注音快搜、階層聯動篩選與 Excel 匯入</p>
+        </div>
+      </div>
+
+      <!-- 檔案操作按鈕區 -->
+      <div class="header-actions">
+        <button
+          id="resetSampleBtn"
+          type="button"
+          class="btn-action btn-reset-sample hidden"
+          title="清除已匯入的名單，恢復為內建 16 筆範例資料"
+        >
+          <span>恢復範例</span>
+        </button>
+
+        <button
+          id="downloadSampleBtn"
+          type="button"
+          class="btn-action btn-sample"
+          title="離線產生並下載標準 Excel (.xlsx) 範例檔"
+        >
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          <span>下載範例 Excel</span>
+        </button>
+
+        <label
+          for="excelFileInput"
+          class="btn-action btn-import"
+          title="選擇 .xlsx 或 .csv 檔案匯入"
+        >
+          <svg width="16" height="16" style="color: var(--amber-300);" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+          <span>匯入 Excel</span>
+        </label>
+        <input id="excelFileInput" type="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" class="hidden" />
+      </div>
+    </div>
+  </header>
+
+  <!-- 置頂固定：核心搜尋與篩選控制區 -->
+  <section class="filter-bar">
+    <div class="container filter-inner">
+
+      <!-- 第一排：即時搜尋欄位（邊打邊找、支援多字注音與綽號） -->
+      <div class="search-box">
+        <div class="search-icon">
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
+          </svg>
+        </div>
+        <input
+          id="searchInput"
+          type="text"
+          autocomplete="off"
+          placeholder="輸入姓名、綽號或注音（如「ㄕㄨ」找「施文/淑」、「ㄉㄊ」找「大頭」）..."
+          class="search-input"
+        />
+        <button
+          id="clearSearchInputBtn"
+          type="button"
+          aria-label="清空搜尋文字"
+          class="input-clear-btn hidden"
+        >
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- 第二排：篩選欄位列（男方/女方雙拼按鈕、關係下拉、注音分組複合輸入+下拉、最右側清除按鈕） -->
+      <div class="filter-controls">
+
+        <!-- 1. 男方 / 女方 雙拼按鈕（左右各半合併在一起） -->
+        <div class="side-toggle-group" role="group" aria-label="男方或女方篩選">
+          <button
+            id="btnSideGroom"
+            type="button"
+            data-side="男方"
+            class="side-btn side-btn-groom"
+          >
+            <span class="side-dot side-dot-groom"></span>
+            <span>男方</span>
+          </button>
+          <button
+            id="btnSideBride"
+            type="button"
+            data-side="女方"
+            class="side-btn side-btn-bride"
+          >
+            <span class="side-dot side-dot-bride"></span>
+            <span>女方</span>
+          </button>
+        </div>
+
+        <!-- 2. 關係 下拉式選單（動態與資料關聯） -->
+        <div class="select-wrapper">
+          <select id="relationSelect" aria-label="關係篩選" class="relation-select">
+            <option value="">關係：全部</option>
+          </select>
+          <div class="select-chevron">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- 3. 姓名注音分組 複合輸入＋下拉選單（連動前面篩選結果） -->
+        <div id="zhuyinComboContainer" class="zhuyin-combo">
+          <input
+            id="zhuyinInput"
+            type="text"
+            autocomplete="off"
+            placeholder="注音分組：可打注音或點選"
+            aria-label="姓名注音分組篩選"
+            class="zhuyin-input"
+          />
+          <button
+            id="clearZhuyinBtn"
+            type="button"
+            aria-label="清除注音篩選"
+            class="zhuyin-clear-btn hidden"
+          >
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <button
+            id="toggleZhuyinDropdownBtn"
+            type="button"
+            aria-label="展開注音分組選單"
+            class="zhuyin-toggle-btn"
+          >
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <div id="zhuyinDropdown" class="zhuyin-dropdown hidden"></div>
+        </div>
+
+        <!-- 4. 最右側：清除按鈕 -->
+        <button id="clearAllBtn" type="button" class="btn-clear-all">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>清除</span>
+        </button>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 主內容區：即時統計列與賓客列表 -->
+  <main class="container main-content">
+
+    <!-- 即時統計摘要列 -->
+    <div class="stats-bar">
+      <div class="stats-left">
+        <span class="stats-label">符合名單：</span>
+        <span id="statGroups" class="stats-groups">0 組</span>
+        <span id="activeFilterHint" class="filter-active-badge hidden">篩選中</span>
+      </div>
+
+      <div class="stats-pills">
+        <span class="stat-chip stat-chip-people">
+          <span>總人數</span>
+          <strong id="statHeadcount">0</strong>
+          <span>位</span>
+          <span id="statHeadcountDetail" class="hidden" style="font-size: 0.78rem; color: var(--text-muted); font-weight: 800;"></span>
+        </span>
+        <span class="stat-chip stat-chip-cake">
+          <span>🎁 領喜餅</span>
+          <strong id="statCake">0</strong>
+          <span>份</span>
+        </span>
+        <span class="stat-chip stat-chip-veg">
+          <span>🥬 素食</span>
+          <strong id="statVeg">0</strong>
+          <span>份</span>
+        </span>
+        <span class="stat-chip stat-chip-chair">
+          <span>👶 兒童椅</span>
+          <strong id="statChair">0</strong>
+          <span>張</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- 賓客資料卡片列表 -->
+    <div id="guestListContainer" class="guest-list"></div>
+
+    <!-- 無符合結果時的提示畫面 -->
+    <div id="emptyState" class="empty-box hidden">
+      <div class="empty-icon">
+        <svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <h3 class="empty-title">找不到符合條件的賓客</h3>
+      <p class="empty-desc">請嘗試改用姓氏注音首碼（例如只打「ㄔ」），或點擊下方按鈕清除篩選條件。</p>
+      <button id="emptyClearBtn" type="button" class="empty-btn">
+        清除所有搜尋與篩選
+      </button>
+    </div>
+
+  </main>
+
+  <script>
+    /**
+     * ============================================================================
+     * 1. 台灣常見姓氏、名字與綽號用字注音對照表 (支援手機輸入法多字注音序列比對)
+     * ============================================================================
+     */
+    const ZHUYIN_DICT = {
+      '陳': ['ㄔㄣˊ'], '林': ['ㄌㄧㄣˊ'], '黃': ['ㄏㄨㄤˊ'], '張': ['ㄓㄤ'], '李': ['ㄌㄧˇ'],
+      '王': ['ㄨㄤˊ'], '吳': ['ㄨˊ'], '劉': ['ㄌㄧㄡˊ'], '蔡': ['ㄘㄞˋ'], '楊': ['ㄧㄤˊ'],
+      '許': ['ㄒㄩˇ'], '鄭': ['ㄓㄥˋ'], '謝': ['ㄒㄧㄝˋ'], '郭': ['ㄍㄨㄛ'], '洪': ['ㄏㄨㄥˊ'],
+      '邱': ['ㄑㄧㄡ'], '曾': ['ㄗㄥ', 'ㄘㄥˊ'], '廖': ['ㄌㄧㄠˋ'], '賴': ['ㄌㄞˋ'], '徐': ['ㄒㄩˊ'],
+      '周': ['ㄓㄡ'], '葉': ['ㄧㄝˋ'], '蘇': ['ㄙㄨ'], '莊': ['ㄓㄨㄤ'], '呂': ['ㄌㄩˇ'],
+      '江': ['ㄐㄧㄤ'], '何': ['ㄏㄜˊ'], '蕭': ['ㄒㄧㄠ'], '羅': ['ㄌㄨㄛˊ'], '高': ['ㄍㄠ'],
+      '潘': ['ㄆㄢ'], '簡': ['ㄐㄧㄢˇ'], '朱': ['ㄓㄨ'], '鍾': ['ㄓㄨㄥ'], '游': ['ㄧㄡˊ'],
+      '彭': ['ㄆㄥˊ'], '詹': ['ㄓㄢ'], '胡': ['ㄏㄨˊ'], '施': ['ㄕ'], '沈': ['ㄕㄣˇ', 'ㄔㄣˊ'],
+      '余': ['ㄩˊ'], '盧': ['ㄌㄨˊ'], '梁': ['ㄌㄧㄤˊ'], '趙': ['ㄓㄠˋ'], '顏': ['ㄧㄢˊ'],
+      '柯': ['ㄎㄜ'], '翁': ['ㄨㄥ'], '魏': ['ㄨㄟˋ'], '孫': ['ㄙㄨㄣ'], '戴': ['ㄉㄞˋ'],
+      '范': ['ㄈㄢˋ'], '方': ['ㄈㄤ'], '宋': ['ㄙㄨㄥˋ'], '鄧': ['ㄉㄥˋ'], '杜': ['ㄉㄨˋ'],
+      '傅': ['ㄈㄨˋ'], '侯': ['ㄏㄡˊ'], '曹': ['ㄘㄠˊ'], '薛': ['ㄒㄩㄝ'], '丁': ['ㄉㄧㄥ'],
+      '卓': ['ㄓㄨㄛˊ'], '馬': ['ㄇㄚˇ'], '董': ['ㄉㄨㄥˇ'], '唐': ['ㄊㄤˊ'], '藍': ['ㄌㄢˊ'],
+      '石': ['ㄕˊ'], '蔣': ['ㄐㄧㄤˇ'], '紀': ['ㄐㄧˋ'], '姚': ['ㄧㄠˊ'], '連': ['ㄌㄧㄢˊ'],
+      '歐': ['ㄡ'], '馮': ['ㄈㄥˊ'], '湯': ['ㄊㄤ'], '田': ['ㄊㄧㄢˊ'], '康': ['ㄎㄤ'],
+      '姜': ['ㄐㄧㄤ'], '白': ['ㄅㄞˊ'], '汪': ['ㄨㄤ'], '鄒': ['ㄗㄡ'], '尤': ['ㄧㄡˊ'],
+      '巫': ['ㄨ'], '鐘': ['ㄓㄨㄥ'], '黎': ['ㄌㄧˊ'], '涂': ['ㄊㄨˊ'], '龔': ['ㄍㄨㄥ'],
+      '嚴': ['ㄧㄢˊ'], '韓': ['ㄏㄢˊ'], '袁': ['ㄩㄢˊ'], '金': ['ㄐㄧㄣ'], '童': ['ㄊㄨㄥˊ'],
+      '陸': ['ㄌㄨˋ'], '夏': ['ㄒㄧㄚˋ'], '柳': ['ㄌㄧㄡˇ'], '邵': ['ㄕㄠˋ'], '錢': ['ㄑㄧㄢˊ'],
+      '伍': ['ㄨˇ'], '倪': ['ㄋㄧˊ'], '溫': ['ㄨㄣ'], '于': ['ㄩˊ'], '景': ['ㄐㄧㄥˇ'],
+      '章': ['ㄓㄤ'], '萬': ['ㄨㄢˋ', 'ㄇㄛˋ'], '駱': ['ㄌㄨㄛˋ'], '麥': ['ㄇㄞˋ'], '阮': ['ㄖㄨㄢˇ'],
+      '程': ['ㄔㄥˊ'], '崔': ['ㄘㄨㄟ'], '裴': ['ㄆㄟˊ'], '莫': ['ㄇㄛˋ'], '易': ['ㄧˋ'],
+      '賀': ['ㄏㄜˋ'], '賈': ['ㄐㄧㄚˇ'], '孟': ['ㄇㄥˋ'], '秦': ['ㄑㄧㄣˊ'], '尹': ['ㄧㄣˇ'],
+      '段': ['ㄉㄨㄢˋ'], '雷': ['ㄌㄟˊ'], '史': ['ㄕˇ'], '陶': ['ㄊㄠˊ'], '毛': ['ㄇㄠˊ'],
+      '郝': ['ㄏㄠˇ'], '顧': ['ㄍㄨˋ'], '龍': ['ㄌㄨㄥˊ'], '任': ['ㄖㄣˋ', 'ㄖㄣˊ'], '熊': ['ㄒㄩㄥˊ'],
+      '辛': ['ㄒㄧㄣ'], '畢': ['ㄅㄧˋ'], '耿': ['ㄍㄥˇ'], '關': ['ㄍㄨㄢ'], '包': ['ㄅㄠ'],
+      '左': ['ㄗㄨㄛˇ'], '齊': ['ㄑㄧˊ'], '向': ['ㄒㄧㄤˋ'], '安': ['ㄢ'], '葛': ['ㄍㄜˇ'],
+      '韋': ['ㄨㄟˊ'], '申': ['ㄕㄣ'], '陽': ['ㄧㄤˊ'], '成': ['ㄔㄥˊ'], '管': ['ㄍㄨㄢˇ'],
+      '祝': ['ㄓㄨˋ'], '華': ['ㄏㄨㄚˊ', 'ㄏㄨㄚˋ'], '甘': ['ㄍㄢ'], '梅': ['ㄇㄟˊ'], '盛': ['ㄕㄥˋ', 'ㄔㄥˊ'],
+      '單': ['ㄕㄢˋ', 'ㄉㄢ'], '解': ['ㄒㄧㄝˋ', 'ㄐㄧㄝˇ'], '查': ['ㄓㄚ', 'ㄔㄚˊ'], '區': ['ㄡ', 'ㄑㄩ'],
+      '仇': ['ㄑㄧㄡˊ', 'ㄔㄡˊ'], '朴': ['ㄆㄧㄠˊ', 'ㄆㄨˇ'], '尉': ['ㄩˋ', 'ㄨㄟˋ'], '卜': ['ㄅㄨˇ', 'ㄅㄛ'],
+      '司': ['ㄙ'], '徒': ['ㄊㄨˊ'], '諸': ['ㄓㄨ'], '歐陽': ['ㄡ'], '司徒': ['ㄙ'], '諸葛': ['ㄓㄨ'],
+      '冠': ['ㄍㄨㄢˋ', 'ㄍㄨㄢ'], '宇': ['ㄩˇ'], '怡': ['ㄧˊ'], '君': ['ㄐㄩㄣ'], '雅': ['ㄧㄚˇ'],
+      '婷': ['ㄊㄧㄥˊ'], '宗': ['ㄗㄨㄥ'], '翰': ['ㄏㄢˋ'], '家': ['ㄐㄧㄚ'], '豪': ['ㄏㄠˊ'],
+      '詩': ['ㄕ'], '涵': ['ㄏㄢˊ'], '志': ['ㄓˋ'], '明': ['ㄇㄧㄥˊ'], '淑': ['ㄕㄨˊ'],
+      '芬': ['ㄈㄣ'], '俊': ['ㄐㄩㄣˋ'], '傑': ['ㄐㄧㄝˊ'], '美': ['ㄇㄟˇ'], '玲': ['ㄌㄧㄥˊ'],
+      '建': ['ㄐㄧㄢˋ'], '宏': ['ㄏㄨㄥˊ'], '佳': ['ㄐㄧㄚ'], '穎': ['ㄧㄥˇ'], '承': ['ㄔㄥˊ'],
+      '恩': ['ㄣ'], '品': ['ㄆㄧㄣˇ'], '妍': ['ㄧㄢˊ'], '子': ['ㄗˇ'], '晴': ['ㄑㄧㄥˊ'],
+      '柏': ['ㄅㄛˊ', 'ㄅㄞˇ'], '睿': ['ㄖㄨㄟˋ'], '語': ['ㄩˇ'], '彤': ['ㄊㄨㄥˊ'], '彦': ['ㄧㄢˋ'],
+      '彥': ['ㄧㄢˋ'], '廷': ['ㄊㄧㄥˊ'], '欣': ['ㄒㄧㄣ'], '妤': ['ㄩˊ'], '哲': ['ㄓㄜˊ'],
+      '瑋': ['ㄨㄟˇ'], '文': ['ㄨㄣˊ'], '山': ['ㄕㄢ'], '惠': ['ㄏㄨㄟˋ'], '珍': ['ㄓㄣ'],
+      '德': ['ㄉㄜˊ'], '秀': ['ㄒㄧㄡˋ'], '英': ['ㄧㄥ'], '國': ['ㄍㄨㄛˊ'], '榮': ['ㄖㄨㄥˊ'],
+      '玉': ['ㄩˋ'], '蘭': ['ㄌㄢˊ'], '大': ['ㄉㄚˋ', 'ㄉㄞˋ'], '偉': ['ㄨㄟˇ'], '小': ['ㄒㄧㄠˇ'],
+      '琪': ['ㄑㄧˊ'], '凱': ['ㄎㄞˇ'], '翔': ['ㄒㄧㄤˊ'], '思': ['ㄙ'], '源': ['ㄩㄢˊ'],
+      '敏': ['ㄇㄧㄣˇ'], '慈': ['ㄘˊ'], '靜': ['ㄐㄧㄥˋ'], '宜': ['ㄧˊ'], '阿': ['ㄚ', 'ㄜ'],
+      '頭': ['ㄊㄡˊ'], '老': ['ㄌㄠˇ'], '胖': ['ㄆㄤˋ'], '瘦': ['ㄕㄡˋ'], '哥': ['ㄍㄜ'],
+      '姐': ['ㄐㄧㄝˇ'], '姊': ['ㄐㄧㄝˇ'], '弟': ['ㄉㄧˋ'], '妹': ['ㄇㄟˋ'], '媽': ['ㄇㄚ'],
+      '爸': ['ㄅㄚˋ'], '寶': ['ㄅㄠˇ'], '喵': ['ㄇㄧㄠ'], '狗': ['ㄍㄡˇ'], '豬': ['ㄓㄨ'],
+      '鴨': ['ㄧㄚ'], '魚': ['ㄩˊ'], '蛋': ['ㄉㄢˋ'], '丸': ['ㄨㄢˊ'], '球': ['ㄑㄧㄡˊ'],
+      '皮': ['ㄆㄧˊ'], '呆': ['ㄉㄞ'], '聰': ['ㄘㄨㄥ'], '強': ['ㄑㄧㄤˊ'], '帥': ['ㄕㄨㄞˋ'],
+      '正': ['ㄓㄥˋ', 'ㄓㄥ'], '甜': ['ㄊㄧㄢˊ'], '蜜': ['ㄇㄧˋ'], '花': ['ㄏㄨㄚ'], '草': ['ㄘㄠˇ'],
+      '木': ['ㄇㄨˋ'], '水': ['ㄕㄨㄟˇ'], '火': ['ㄏㄨㄛˇ'], '土': ['ㄊㄨˇ'], '黑': ['ㄏㄟ'],
+      '紅': ['ㄏㄨㄥˊ'], '綠': ['ㄌㄩˋ'], '紫': ['ㄗˇ'], '灰': ['ㄏㄨㄟ'], '銀': ['ㄧㄣˊ'],
+      '軒': ['ㄒㄩㄢ'], '維': ['ㄨㄟˊ'], '倫': ['ㄌㄨㄣˊ'], '誠': ['ㄔㄥˊ'], '均': ['ㄐㄩㄣ'],
+      '祥': ['ㄒㄧㄤˊ'], '昌': ['ㄔㄤ'], '財': ['ㄘㄞˊ'], '彬': ['ㄅㄧㄣ'], '達': ['ㄉㄚˊ'],
+      '振': ['ㄓㄣˋ'], '齊': ['ㄑㄧˊ'], '雯': ['ㄨㄣˊ'], '珊': ['ㄕㄢ'], '蓁': ['ㄓㄣ'],
+      '郁': ['ㄩˋ'], '臻': ['ㄓㄣ'], '慧': ['ㄏㄨㄟˋ'], '如': ['ㄖㄨˊ'], '蓮': ['ㄌㄧㄢˊ'],
+      '詠': ['ㄩㄥˇ'], '瑄': ['ㄒㄩㄢ'], '沛': ['ㄆㄟˋ'], '筱': ['ㄒㄧㄠˇ'], '潔': ['ㄐㄧㄝˊ'],
+      '庭': ['ㄊㄧㄥˊ'], '瑜': ['ㄩˊ'], '芸': ['ㄩㄣˊ'], '熙': ['ㄒㄧ'], '采': ['ㄘㄞˇ'],
+      '芷': ['ㄓˇ'], '若': ['ㄖㄨㄛˋ'], '嘉': ['ㄐㄧㄚ'], '盈': ['ㄧㄥˊ'], '依': ['ㄧ'],
+      '琴': ['ㄑㄧㄣˊ'], '梅': ['ㄇㄟˊ'], '貞': ['ㄓㄣ'], '月': ['ㄩㄝˋ'], '雲': ['ㄩㄣˊ'],
+      '娟': ['ㄐㄩㄢ'], '萍': ['ㄆㄧㄥˊ'], '珮': ['ㄆㄟˋ'], '長': ['ㄔㄤˊ', 'ㄓㄤˇ'], '樂': ['ㄌㄜˋ', 'ㄩㄝˋ'],
+      '好': ['ㄏㄠˇ', 'ㄏㄠˋ'], '少': ['ㄕㄠˇ', 'ㄕㄠˋ'], '行': ['ㄒㄧㄥˊ', 'ㄏㄤˊ'], '重': ['ㄓㄨㄥˋ', 'ㄔㄨㄥˊ'],
+      '豆': ['ㄉㄡˋ'], '瓜': ['ㄍㄨㄚ'], '果': ['ㄍㄨㄛˇ'], '糖': ['ㄊㄤˊ'], '茶': ['ㄔㄚˊ'],
+      '酒': ['ㄐㄧㄡˇ'], '奶': ['ㄋㄞˇ'], '貓': ['ㄇㄠ'], '兔': ['ㄊㄨˋ'], '虎': ['ㄏㄨˇ'],
+      '羊': ['ㄧㄤˊ'], '猴': ['ㄏㄡˊ'], '雞': ['ㄐㄧ'], '牛': ['ㄋㄧㄡˊ'], '鼠': ['ㄕㄨˇ'],
+      '星': ['ㄒㄧㄥ'], '光': ['ㄍㄨㄤ'], '風': ['ㄈㄥ'], '雨': ['ㄩˇ'], '雪': ['ㄒㄩㄝˇ'],
+      '海': ['ㄏㄞˇ'], '森': ['ㄙㄣ'], '竹': ['ㄓㄨˊ'], '松': ['ㄙㄨㄥ'], '楓': ['ㄈㄥ'],
+      '桃': ['ㄊㄠˊ'], '杏': ['ㄒㄧㄥˋ'], '橘': ['ㄐㄩˊ'], '柚': ['ㄧㄡˋ'], '莓': ['ㄇㄟˊ'],
+      '米': ['ㄇㄧˇ'], '包': ['ㄅㄠ'], '餅': ['ㄅㄧㄥˇ'], '湯': ['ㄊㄤ'], '主': ['ㄓㄨˇ'],
+      '公': ['ㄍㄨㄥ'], '師': ['ㄕ'], '生': ['ㄕㄥ'], '總': ['ㄗㄨㄥˇ'], '理': ['ㄌㄧˇ'],
+      '董': ['ㄉㄨㄥˇ'], '監': ['ㄐㄧㄢ'], '友': ['ㄧㄡˇ'], '客': ['ㄎㄜˋ'], '人': ['ㄖㄣˊ'],
+      '愛': ['ㄞˋ'], '福': ['ㄈㄨˊ'], '壽': ['ㄕㄡˋ'], '喜': ['ㄒㄧˇ'], '歡': ['ㄏㄨㄢ'],
+      '笑': ['ㄒㄧㄠˋ'], '智': ['ㄓˋ'], '信': ['ㄒㄧㄣˋ'], '仁': ['ㄖㄣˊ'], '義': ['ㄧˋ'],
+      '禮': ['ㄌㄧˇ'], '忠': ['ㄓㄨㄥ'], '孝': ['ㄒㄧㄠˋ'], '平': ['ㄆㄧㄥˊ'], '康': ['ㄎㄤ'],
+      '健': ['ㄐㄧㄢˋ'], '富': ['ㄈㄨˋ'], '貴': ['ㄍㄨㄟˋ'], '吉': ['ㄐㄧˊ'], '意': ['ㄧˋ'],
+      '成': ['ㄔㄥˊ'], '功': ['ㄍㄨㄥ'], '勝': ['ㄕㄥˋ'], '利': ['ㄌㄧˋ'], '發': ['ㄈㄚ'],
+      '興': ['ㄒㄧㄥ'], '旺': ['ㄨㄤˋ'], '耀': ['ㄧㄠˋ'], '亮': ['ㄌㄧㄤˋ'], '超': ['ㄔㄠ'],
+      '一': ['ㄧ'], '二': ['ㄦˋ'], '三': ['ㄙㄢ'], '四': ['ㄙˋ'], '五': ['ㄨˇ'],
+      '六': ['ㄌㄧㄡˋ'], '七': ['ㄑㄧ'], '八': ['ㄅㄚ'], '九': ['ㄐㄧㄡˇ'], '十': ['ㄕˊ'],
+      '百': ['ㄅㄞˇ'], '千': ['ㄑㄧㄢ'], '新': ['ㄒㄧㄣ'], '春': ['ㄔㄨㄣ'], '夏': ['ㄒㄧㄚˋ'],
+      '秋': ['ㄑㄧㄡ'], '冬': ['ㄉㄨㄥ'], '晨': ['ㄔㄣˊ'], '曉': ['ㄒㄧㄠˇ'], '清': ['ㄑㄧㄥ'],
+      '香': ['ㄒㄧㄤ'], '飛': ['ㄈㄟ'], '北': ['ㄅㄟˇ'], '南': ['ㄋㄢˊ'], '東': ['ㄉㄨㄥ'],
+      '西': ['ㄒㄧ'], '台': ['ㄊㄞˊ'], '臺': ['ㄊㄞˊ'], '叔': ['ㄕㄨˊ'], '伯': ['ㄅㄛˊ'],
+      '姑': ['ㄍㄨ'], '舅': ['ㄐㄧㄡˋ'], '姨': ['ㄧˊ'], '表': ['ㄅㄧㄠˇ'], '堂': ['ㄊㄤˊ'],
+      '嬸': ['ㄕㄣˇ'], '丈': ['ㄓㄤˋ'], '學': ['ㄒㄩㄝˊ'], '同': ['ㄊㄨㄥˊ'], '事': ['ㄕˋ'],
+      '副': ['ㄈㄨˋ'], '任': ['ㄖㄣˋ'], '主': ['ㄓㄨˇ']
+    };
+
+    const ZHUYIN_ORDER = 'ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙㄧㄨㄩㄚㄛㄜㄝㄞㄟㄠㄡㄢㄣㄤㄥㄦ';
+    const STORAGE_KEY = 'wedding_seating_offline_data_v1';
+
+    /**
+     * ============================================================================
+     * 2. 預設範例名單 (16筆真實台灣婚禮情境資料)
+     * ============================================================================
+     */
+    const DEFAULT_GUESTS = [
+      { name: '陳國榮', nickname: '榮爸', side: '男方', relation: '親人', zhuyinGroup: 'ㄔ', table: '主桌', headcount: '2大', cake: '否', vegetarian: 0, babyChair: 0, extras: { '稱謂': '新郎父母', '禮金編號': 'M-001', '備註': '主桌主位，無需收禮金' } },
+      { name: '林美玲', nickname: '玲媽', side: '女方', relation: '親人', zhuyinGroup: 'ㄌ', table: '主桌', headcount: '2大', cake: '是', vegetarian: 1, babyChair: 0, extras: { '稱謂': '新娘父母', '禮金編號': 'F-001', '備註': '新娘媽媽吃蛋奶素，女方主婚人喜餅已預留' } },
+      { name: '施文宏', nickname: '阿文', side: '男方', relation: '工作', zhuyinGroup: 'ㄕ', table: '第 2 桌', headcount: '2大', cake: '否', vegetarian: 0, babyChair: 0, extras: { '禮金編號': 'A-009', '備註': '新郎系統部前輩，常被叫阿文' } },
+      { name: '陳施文', nickname: '施文哥', side: '男方', relation: '學校', zhuyinGroup: 'ㄔ', table: '第 3 桌', headcount: 1, cake: '否', vegetarian: 0, babyChair: 0, extras: { '禮金編號': 'A-011', '備註': '新郎大學系隊學長' } },
+      { name: '陳淑芬', nickname: '小淑', side: '女方', relation: '親人', zhuyinGroup: 'ㄔ', table: '第 4 桌', headcount: '2大', cake: '是', vegetarian: 1, babyChair: 0, extras: { '稱謂': '表姑一家', '禮金編號': 'B-002', '備註': '吃全素，需領喜餅' } },
+      { name: '陳冠宇', nickname: '大頭', side: '男方', relation: '學校', zhuyinGroup: 'ㄔ', table: '第 3 桌', headcount: '2大1小', cake: '否', vegetarian: 0, babyChair: 1, extras: { '禮金編號': 'A-012', '備註': '新郎大學室友，攜帶1歲寶寶需兒童餐具' } },
+      { name: '林怡君', nickname: '小美', side: '女方', relation: '工作', zhuyinGroup: 'ㄌ', table: '第 5 桌', headcount: 1, cake: '是', vegetarian: 0, babyChair: 0, extras: { '禮金編號': 'B-004', '備註': '新娘設計部主管，領中式大餅＋西式喜餅' } },
+      { name: '黃志明', nickname: '阿宏', side: '男方', relation: '工作', zhuyinGroup: 'ㄏ', table: '第 2 桌', headcount: '2大1小', cake: '否', vegetarian: 0, babyChair: 1, extras: { '禮金編號': 'A-019', '停車折抵': '1台', '備註': '研發部經理攜眷出席' } },
+      { name: '張雅婷', nickname: '婷婷', side: '女方', relation: '學校', zhuyinGroup: 'ㄓ', table: '第 6 桌', headcount: '2大', cake: '是', vegetarian: 1, babyChair: 0, extras: { '禮金編號': 'B-008', '備註': '高中死黨，伴娘好友團' } },
+      { name: '王大偉', nickname: '大偉哥', side: '男方', relation: '親人', zhuyinGroup: 'ㄨ', table: '第 1 桌', headcount: '4大', cake: '是', vegetarian: 2, babyChair: 0, extras: { '稱謂': '大伯一家', '禮金編號': 'A-002', '備註': '男方長輩桌，需準備2份全素套餐' } },
+      { name: '蔡詩涵', nickname: '詩詩', side: '女方', relation: '學校', zhuyinGroup: 'ㄘ', table: '第 6 桌', headcount: 1, cake: '是', vegetarian: 0, babyChair: 0, extras: { '禮金編號': 'B-011', '備註': '大學社團同學，預計12:15抵達' } },
+      { name: '李宗翰', nickname: '翰寶', side: '男方', relation: '學校', zhuyinGroup: 'ㄌ', table: '第 3 桌', headcount: 1, cake: '否', vegetarian: 0, babyChair: 0, extras: { '禮金編號': 'A-015', '備註': '新郎高中同學，負責幫忙擋酒' } },
+      { name: '吳淑芬', nickname: '高雄阿姨', side: '女方', relation: '親人', zhuyinGroup: 'ㄨ', table: '第 4 桌', headcount: '2大1小', cake: '2盒', vegetarian: 1, babyChair: 0, extras: { '稱謂': '阿姨一家', '禮金編號': 'B-003', '停車折抵': '1台', '備註': '高雄北上親友，需多領1盒長輩餅' } },
+      { name: '許家豪', nickname: '豪哥', side: '男方', relation: '工作', zhuyinGroup: 'ㄒ', table: '第 2 桌', headcount: '2大', cake: '否', vegetarian: 0, babyChair: 0, extras: { '禮金編號': 'A-022', '備註': '新郎前公司同事' } },
+      { name: '鄭羽彤', nickname: '小彤', side: '女方', relation: '工作', zhuyinGroup: 'ㄓ', table: '第 5 桌', headcount: '2大2小', cake: '是', vegetarian: 0, babyChair: 1, extras: { '禮金編號': 'B-014', '備註': '攜帶雙胞胎其中一位，需靠走道座位' } },
+      { name: '簡子晴', nickname: '晴晴', side: '女方', relation: '學校', zhuyinGroup: 'ㄐ', table: '第 6 桌', headcount: '2大', cake: '是', vegetarian: 0, babyChair: 0, extras: { '禮金編號': 'B-019', '停車折抵': '1台', '備註': '大學室友，合包禮金' } }
+    ];
+
+    /**
+     * ============================================================================
+     * 3. 應用程式狀態與 DOM 快取
+     * ============================================================================
+     */
+    const state = {
+      guests: [...DEFAULT_GUESTS],
+      searchQuery: '',
+      selectedSide: '',
+      selectedRelation: '',
+      selectedZhuyin: '',
+      isZhuyinDropdownOpen: false
+    };
+
+    const dom = {
+      searchInput: document.getElementById('searchInput'),
+      clearSearchInputBtn: document.getElementById('clearSearchInputBtn'),
+      btnSideGroom: document.getElementById('btnSideGroom'),
+      btnSideBride: document.getElementById('btnSideBride'),
+      relationSelect: document.getElementById('relationSelect'),
+      zhuyinComboContainer: document.getElementById('zhuyinComboContainer'),
+      zhuyinInput: document.getElementById('zhuyinInput'),
+      clearZhuyinBtn: document.getElementById('clearZhuyinBtn'),
+      toggleZhuyinDropdownBtn: document.getElementById('toggleZhuyinDropdownBtn'),
+      zhuyinDropdown: document.getElementById('zhuyinDropdown'),
+      clearAllBtn: document.getElementById('clearAllBtn'),
+      emptyClearBtn: document.getElementById('emptyClearBtn'),
+      guestListContainer: document.getElementById('guestListContainer'),
+      emptyState: document.getElementById('emptyState'),
+      statGroups: document.getElementById('statGroups'),
+      statHeadcount: document.getElementById('statHeadcount'),
+      statHeadcountDetail: document.getElementById('statHeadcountDetail'),
+      statCake: document.getElementById('statCake'),
+      statVeg: document.getElementById('statVeg'),
+      statChair: document.getElementById('statChair'),
+      activeFilterHint: document.getElementById('activeFilterHint'),
+      excelFileInput: document.getElementById('excelFileInput'),
+      downloadSampleBtn: document.getElementById('downloadSampleBtn'),
+      resetSampleBtn: document.getElementById('resetSampleBtn'),
+      dataSourceBadge: document.getElementById('dataSourceBadge'),
+      dropOverlay: document.getElementById('dropOverlay'),
+      toastContainer: document.getElementById('toastContainer')
+    };
+
+    /**
+     * ============================================================================
+     * 4. 純原生 JavaScript 離線 XLSX / CSV 讀寫引擎（零外部依賴）
+     * ============================================================================
+     */
+    const OfflineSpreadsheet = (() => {
+      const textEncoder = new TextEncoder();
+      const textDecoder = new TextDecoder('utf-8');
+
+      // CRC-32 查找表
+      const crcTable = new Uint32Array(256);
+      for (let i = 0; i < 256; i++) {
+        let c = i;
+        for (let k = 0; k < 8; k++) {
+          c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+        }
+        crcTable[i] = c;
+      }
+
+      function crc32(bytes) {
+        let crc = 0xFFFFFFFF;
+        for (let i = 0; i < bytes.length; i++) {
+          crc = crcTable[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+        }
+        return (crc ^ 0xFFFFFFFF) >>> 0;
+      }
+
+      function escapeXml(str) {
+        return String(str ?? '')
+          .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&apos;');
+      }
+
+      function colIndexToLetter(idx) {
+        let s = '';
+        let n = idx + 1;
+        while (n > 0) {
+          const rem = (n - 1) % 26;
+          s = String.fromCharCode(65 + rem) + s;
+          n = Math.floor((n - 1) / 26);
+        }
+        return s;
+      }
+
+      function colLetterToIndex(letters) {
+        let col = 0;
+        for (let i = 0; i < letters.length; i++) {
+          col = col * 26 + (letters.charCodeAt(i) - 64);
+        }
+        return col - 1;
+      }
+
+      // 純 JS RFC 1951 Inflate 備援解壓縮器（當舊版手機 WebView 不支援 DecompressionStream 時使用）
+      function inflateRawFallback(src) {
+        let pos = 0;
+        let bitBuf = 0;
+        let bitCnt = 0;
+        const out = [];
+
+        function readBits(n) {
+          while (bitCnt < n) {
+            if (pos >= src.length) throw new Error('Unexpected EOF in deflate stream');
+            bitBuf |= src[pos++] << bitCnt;
+            bitCnt += 8;
+          }
+          const val = bitBuf & ((1 << n) - 1);
+          bitBuf >>>= n;
+          bitCnt -= n;
+          return val;
+        }
+
+        function buildHuffman(lengths) {
+          const maxBits = Math.max(...lengths, 1);
+          const count = new Uint16Array(maxBits + 1);
+          for (let i = 0; i < lengths.length; i++) {
+            if (lengths[i] > 0) count[lengths[i]]++;
+          }
+          const nextCode = new Uint16Array(maxBits + 1);
+          let code = 0;
+          for (let bits = 1; bits <= maxBits; bits++) {
+            code = (code + count[bits - 1]) << 1;
+            nextCode[bits] = code;
+          }
+          const table = new Map();
+          for (let sym = 0; sym < lengths.length; sym++) {
+            const len = lengths[sym];
+            if (len > 0) {
+              const c = nextCode[len]++;
+              let rev = 0;
+              for (let b = 0; b < len; b++) {
+                rev = (rev << 1) | ((c >>> b) & 1);
+              }
+              table.set((len << 16) | rev, sym);
+            }
+          }
+          return { table, maxBits };
+        }
+
+        function decodeSym(huff) {
+          let code = 0;
+          for (let len = 1; len <= huff.maxBits; len++) {
+            code |= readBits(1) << (len - 1);
+            const sym = huff.table.get((len << 16) | code);
+            if (sym !== undefined) return sym;
+          }
+          throw new Error('Invalid Huffman code');
+        }
+
+        const fixedLitLens = new Uint8Array(288);
+        fixedLitLens.fill(8, 0, 144);
+        fixedLitLens.fill(9, 144, 256);
+        fixedLitLens.fill(7, 256, 280);
+        fixedLitLens.fill(8, 280, 288);
+        const fixedLitHuff = buildHuffman(fixedLitLens);
+
+        const fixedDistLens = new Uint8Array(32).fill(5);
+        const fixedDistHuff = buildHuffman(fixedDistLens);
+
+        const lenBase = [3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258];
+        const lenExtra = [0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0];
+        const distBase = [1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577];
+        const distExtra = [0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];
+        const clOrder = [16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];
+
+        let bfinal = 0;
+        while (!bfinal) {
+          bfinal = readBits(1);
+          const btype = readBits(2);
+          if (btype === 0) {
+            bitBuf = 0;
+            bitCnt = 0;
+            const len = src[pos] | (src[pos + 1] << 8);
+            pos += 4;
+            for (let i = 0; i < len; i++) out.push(src[pos++]);
+          } else {
+            let litHuff = fixedLitHuff;
+            let distHuff = fixedDistHuff;
+            if (btype === 2) {
+              const hlit = readBits(5) + 257;
+              const hdist = readBits(5) + 1;
+              const hclen = readBits(4) + 4;
+              const clLens = new Uint8Array(19);
+              for (let i = 0; i < hclen; i++) clLens[clOrder[i]] = readBits(3);
+              const clHuff = buildHuffman(clLens);
+              const allLens = new Uint8Array(hlit + hdist);
+              let idx = 0;
+              while (idx < allLens.length) {
+                const sym = decodeSym(clHuff);
+                if (sym < 16) {
+                  allLens[idx++] = sym;
+                } else if (sym === 16) {
+                  const rep = readBits(2) + 3;
+                  const prev = allLens[idx - 1];
+                  for (let r = 0; r < rep; r++) allLens[idx++] = prev;
+                } else if (sym === 17) {
+                  const rep = readBits(3) + 3;
+                  for (let r = 0; r < rep; r++) allLens[idx++] = 0;
+                } else if (sym === 18) {
+                  const rep = readBits(7) + 11;
+                  for (let r = 0; r < rep; r++) allLens[idx++] = 0;
+                }
+              }
+              litHuff = buildHuffman(allLens.slice(0, hlit));
+              distHuff = buildHuffman(allLens.slice(hlit));
+            }
+
+            while (true) {
+              const sym = decodeSym(litHuff);
+              if (sym === 256) break;
+              if (sym < 256) {
+                out.push(sym);
+              } else {
+                const li = sym - 257;
+                const length = lenBase[li] + readBits(lenExtra[li]);
+                const di = decodeSym(distHuff);
+                const distance = distBase[di] + readBits(distExtra[di]);
+                for (let i = 0; i < length; i++) {
+                  out.push(out[out.length - distance]);
+                }
+              }
+            }
+          }
+        }
+        return new Uint8Array(out);
+      }
+
+      async function decompressDeflateRaw(compressedBytes) {
+        if (typeof DecompressionStream !== 'undefined') {
+          try {
+            const ds = new DecompressionStream('deflate-raw');
+            const writer = ds.writable.getWriter();
+            writer.write(compressedBytes);
+            writer.close();
+            const buf = await new Response(ds.readable).arrayBuffer();
+            return new Uint8Array(buf);
+          } catch (_) {
+            return inflateRawFallback(compressedBytes);
+          }
+        }
+        return inflateRawFallback(compressedBytes);
+      }
+
+      // 解壓縮 ZIP 檔案內的所有 XML 項目
+      async function unzipEntries(arrayBuffer) {
+        const bytes = new Uint8Array(arrayBuffer);
+        const view = new DataView(arrayBuffer);
+
+        // 尋找 End of Central Directory (0x06054b50)
+        let eocdOffset = -1;
+        const minSearch = Math.max(0, bytes.length - 65557);
+        for (let i = bytes.length - 22; i >= minSearch; i--) {
+          if (view.getUint32(i, true) === 0x06054b50) {
+            eocdOffset = i;
+            break;
+          }
+        }
+        if (eocdOffset === -1) {
+          throw new Error('無效的 Excel (.xlsx) 壓縮結構');
+        }
+
+        const totalEntries = view.getUint16(eocdOffset + 10, true);
+        let cdOffset = view.getUint32(eocdOffset + 16, true);
+        const entries = new Map();
+
+        for (let i = 0; i < totalEntries; i++) {
+          if (view.getUint32(cdOffset, true) !== 0x02014b50) break;
+          const method = view.getUint16(cdOffset + 10, true);
+          const compSize = view.getUint32(cdOffset + 20, true);
+          const nameLen = view.getUint16(cdOffset + 28, true);
+          const extraLen = view.getUint16(cdOffset + 30, true);
+          const commentLen = view.getUint16(cdOffset + 32, true);
+          const localOffset = view.getUint32(cdOffset + 42, true);
+
+          const fileName = textDecoder.decode(bytes.subarray(cdOffset + 46, cdOffset + 46 + nameLen));
+          cdOffset += 46 + nameLen + extraLen + commentLen;
+
+          if (fileName.endsWith('/')) continue;
+
+          const localNameLen = view.getUint16(localOffset + 26, true);
+          const localExtraLen = view.getUint16(localOffset + 28, true);
+          const dataStart = localOffset + 30 + localNameLen + localExtraLen;
+          const compData = bytes.subarray(dataStart, dataStart + compSize);
+
+          let rawBytes;
+          if (method === 0) {
+            rawBytes = compData;
+          } else if (method === 8) {
+            rawBytes = await decompressDeflateRaw(compData);
+          } else {
+            continue;
+          }
+          entries.set(fileName, textDecoder.decode(rawBytes));
+        }
+
+        return entries;
+      }
+
+      // 解析 .xlsx 並轉換為與 sheet_to_json 相同的物件陣列
+      async function parseXlsx(arrayBuffer) {
+        const entries = await unzipEntries(arrayBuffer);
+        const parser = new DOMParser();
+
+        // 1. 讀取 Shared Strings（若有）
+        const sharedStrings = [];
+        if (entries.has('xl/sharedStrings.xml')) {
+          const sstDoc = parser.parseFromString(entries.get('xl/sharedStrings.xml'), 'application/xml');
+          const siNodes = sstDoc.getElementsByTagName('si');
+          for (let i = 0; i < siNodes.length; i++) {
+            const tNodes = siNodes[i].getElementsByTagName('t');
+            let fullText = '';
+            for (let j = 0; j < tNodes.length; j++) {
+              fullText += tNodes[j].textContent || '';
+            }
+            sharedStrings.push(fullText);
+          }
+        }
+
+        // 2. 定位第一個工作表 XML 路徑
+        let firstSheetPath = 'xl/worksheets/sheet1.xml';
+        if (entries.has('xl/workbook.xml') && entries.has('xl/_rels/workbook.xml.rels')) {
+          const wbDoc = parser.parseFromString(entries.get('xl/workbook.xml'), 'application/xml');
+          const relsDoc = parser.parseFromString(entries.get('xl/_rels/workbook.xml.rels'), 'application/xml');
+          const firstSheet = wbDoc.getElementsByTagName('sheet')[0];
+          const rId = firstSheet && (firstSheet.getAttribute('r:id') || firstSheet.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id'));
+          if (rId) {
+            const rels = relsDoc.getElementsByTagName('Relationship');
+            for (let i = 0; i < rels.length; i++) {
+              if (rels[i].getAttribute('Id') === rId) {
+                let target = rels[i].getAttribute('Target') || '';
+                target = target.replace(/^\/+/, '');
+                firstSheetPath = target.startsWith('xl/') ? target : `xl/${target}`;
+                break;
+              }
+            }
+          }
+        }
+
+        const sheetXml = entries.get(firstSheetPath) || entries.get('xl/worksheets/sheet1.xml');
+        if (!sheetXml) {
+          throw new Error('找不到 Excel 工作表內容');
+        }
+
+        // 3. 解析所有儲存格成二維陣列
+        const sheetDoc = parser.parseFromString(sheetXml, 'application/xml');
+        const rowNodes = sheetDoc.getElementsByTagName('row');
+        const matrix = [];
+
+        for (let r = 0; r < rowNodes.length; r++) {
+          const rowArr = [];
+          const cNodes = rowNodes[r].getElementsByTagName('c');
+          for (let c = 0; c < cNodes.length; c++) {
+            const cell = cNodes[c];
+            const ref = cell.getAttribute('r') || '';
+            const colMatch = ref.match(/^([A-Z]+)/i);
+            const colIdx = colMatch ? colLetterToIndex(colMatch[1].toUpperCase()) : c;
+            const cellType = cell.getAttribute('t') || '';
+
+            let val = '';
+            if (cellType === 'inlineStr') {
+              const tNodes = cell.getElementsByTagName('t');
+              for (let k = 0; k < tNodes.length; k++) {
+                val += tNodes[k].textContent || '';
+              }
+            } else {
+              const vNode = cell.getElementsByTagName('v')[0];
+              const rawV = vNode ? (vNode.textContent || '') : '';
+              if (cellType === 's') {
+                const sIdx = parseInt(rawV, 10);
+                val = !Number.isNaN(sIdx) && sharedStrings[sIdx] !== undefined ? sharedStrings[sIdx] : '';
+              } else if (cellType === 'b') {
+                val = rawV === '1' ? '是' : '否';
+              } else if (cellType === 'str') {
+                val = rawV;
+              } else if (rawV !== '' && !Number.isNaN(Number(rawV))) {
+                val = Number(rawV);
+              } else {
+                val = rawV;
+              }
+            }
+            rowArr[colIdx] = val;
+          }
+          matrix.push(rowArr);
+        }
+
+        if (matrix.length < 2) return [];
+
+        const headers = matrix[0].map((h, idx) => {
+          const clean = String(h ?? '').trim();
+          return clean || `__EMPTY_${idx}`;
+        });
+
+        const objects = [];
+        for (let r = 1; r < matrix.length; r++) {
+          const row = matrix[r] || [];
+          const obj = {};
+          headers.forEach((header, idx) => {
+            obj[header] = row[idx] !== undefined ? row[idx] : '';
+          });
+          objects.push(obj);
+        }
+
+        return objects;
+      }
+
+      // 解析 CSV 文字
+      function parseCsv(csvText) {
+        const cleanText = csvText.replace(/^\uFEFF/, '');
+        const rows = [];
+        let curRow = [];
+        let curVal = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < cleanText.length; i++) {
+          const ch = cleanText[i];
+          const next = cleanText[i + 1];
+
+          if (inQuotes) {
+            if (ch === '"' && next === '"') {
+              curVal += '"';
+              i++;
+            } else if (ch === '"') {
+              inQuotes = false;
+            } else {
+              curVal += ch;
+            }
+          } else {
+            if (ch === '"') {
+              inQuotes = true;
+            } else if (ch === ',') {
+              curRow.push(curVal);
+              curVal = '';
+            } else if (ch === '\r' && next === '\n') {
+              curRow.push(curVal);
+              rows.push(curRow);
+              curRow = [];
+              curVal = '';
+              i++;
+            } else if (ch === '\n' || ch === '\r') {
+              curRow.push(curVal);
+              rows.push(curRow);
+              curRow = [];
+              curVal = '';
+            } else {
+              curVal += ch;
+            }
+          }
+        }
+        if (curVal !== '' || curRow.length > 0) {
+          curRow.push(curVal);
+          rows.push(curRow);
+        }
+
+        if (rows.length < 2) return [];
+        const headers = rows[0].map((h, idx) => String(h ?? '').trim() || `__EMPTY_${idx}`);
+        const objects = [];
+        for (let r = 1; r < rows.length; r++) {
+          const row = rows[r];
+          if (row.every(v => String(v ?? '').trim() === '')) continue;
+          const obj = {};
+          headers.forEach((h, idx) => {
+            obj[h] = row[idx] !== undefined ? row[idx] : '';
+          });
+          objects.push(obj);
+        }
+        return objects;
+      }
+
+      // 產生標準未壓縮 ZIP 格式的 .xlsx 檔案 Blob（100% 離線可匯出，Excel 與手機試算表皆可直接開啟）
+      function createXlsxBlob(rows) {
+        const headers = Object.keys(rows[0] || {});
+        const sheetRowsXml = [];
+
+        // 表頭列 (Row 1)
+        const headerCells = headers.map((h, cIdx) => {
+          const ref = `${colIndexToLetter(cIdx)}1`;
+          return `<c r="${ref}" t="inlineStr"><is><t>${escapeXml(h)}</t></is></c>`;
+        }).join('');
+        sheetRowsXml.push(`<row r="1">${headerCells}</row>`);
+
+        // 資料列 (Row 2+)
+        rows.forEach((rowObj, rIdx) => {
+          const rowNum = rIdx + 2;
+          const cellsXml = headers.map((h, cIdx) => {
+            const val = rowObj[h];
+            const ref = `${colIndexToLetter(cIdx)}${rowNum}`;
+            if (typeof val === 'number' && !Number.isNaN(val)) {
+              return `<c r="${ref}"><v>${val}</v></c>`;
+            }
+            return `<c r="${ref}" t="inlineStr"><is><t>${escapeXml(val)}</t></is></c>`;
+          }).join('');
+          sheetRowsXml.push(`<row r="${rowNum}">${cellsXml}</row>`);
+        });
+
+        const files = [
+          {
+            name: '[Content_Types].xml',
+            content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+  <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+</Types>`
+          },
+          {
+            name: '_rels/.rels',
+            content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`
+          },
+          {
+            name: 'xl/workbook.xml',
+            content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <sheets>
+    <sheet name="婚禮賓客座位表" sheetId="1" r:id="rId1"/>
+  </sheets>
+</workbook>`
+          },
+          {
+            name: 'xl/_rels/workbook.xml.rels',
+            content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+</Relationships>`
+          },
+          {
+            name: 'xl/worksheets/sheet1.xml',
+            content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <sheetData>${sheetRowsXml.join('')}</sheetData>
+</worksheet>`
+          }
+        ];
+
+        const localParts = [];
+        const centralParts = [];
+        let offset = 0;
+
+        files.forEach(file => {
+          const nameBytes = textEncoder.encode(file.name);
+          const dataBytes = textEncoder.encode(file.content);
+          const checksum = crc32(dataBytes);
+
+          // Local File Header (30 bytes + name)
+          const localHeader = new Uint8Array(30 + nameBytes.length);
+          const lv = new DataView(localHeader.buffer);
+          lv.setUint32(0, 0x04034b50, true);
+          lv.setUint16(4, 20, true);
+          lv.setUint16(6, 0x0800, true); // UTF-8 filename flag
+          lv.setUint16(8, 0, true);      // STORE (no compression)
+          lv.setUint16(10, 0, true);
+          lv.setUint16(12, 0, true);
+          lv.setUint32(14, checksum, true);
+          lv.setUint32(18, dataBytes.length, true);
+          lv.setUint32(22, dataBytes.length, true);
+          lv.setUint16(26, nameBytes.length, true);
+          lv.setUint16(28, 0, true);
+          localHeader.set(nameBytes, 30);
+
+          localParts.push(localHeader, dataBytes);
+
+          // Central Directory Header (46 bytes + name)
+          const cdHeader = new Uint8Array(46 + nameBytes.length);
+          const cv = new DataView(cdHeader.buffer);
+          cv.setUint32(0, 0x02014b50, true);
+          cv.setUint16(4, 20, true);
+          cv.setUint16(6, 20, true);
+          cv.setUint16(8, 0x0800, true);
+          cv.setUint16(10, 0, true);
+          cv.setUint16(12, 0, true);
+          cv.setUint16(14, 0, true);
+          cv.setUint32(16, checksum, true);
+          cv.setUint32(20, dataBytes.length, true);
+          cv.setUint32(24, dataBytes.length, true);
+          cv.setUint16(28, nameBytes.length, true);
+          cv.setUint16(30, 0, true);
+          cv.setUint16(32, 0, true);
+          cv.setUint16(34, 0, true);
+          cv.setUint16(36, 0, true);
+          cv.setUint32(38, 0, true);
+          cv.setUint32(42, offset, true);
+          cdHeader.set(nameBytes, 46);
+
+          centralParts.push(cdHeader);
+          offset += localHeader.length + dataBytes.length;
+        });
+
+        const cdStart = offset;
+        let cdSize = 0;
+        centralParts.forEach(p => { cdSize += p.length; });
+
+        const eocd = new Uint8Array(22);
+        const ev = new DataView(eocd.buffer);
+        ev.setUint32(0, 0x06054b50, true);
+        ev.setUint16(4, 0, true);
+        ev.setUint16(6, 0, true);
+        ev.setUint16(8, files.length, true);
+        ev.setUint16(10, files.length, true);
+        ev.setUint32(12, cdSize, true);
+        ev.setUint32(16, cdStart, true);
+        ev.setUint16(20, 0, true);
+
+        return new Blob([...localParts, ...centralParts, eocd], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+      }
+
+      return { parseXlsx, parseCsv, createXlsxBlob };
+    })();
+
+    /**
+     * ============================================================================
+     * 5. 工具函式：注音比對、數值解析、HTML 跳脫與 Toast 提示
+     * ============================================================================
+     */
+    function escapeHTML(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast-item ${type === 'error' ? 'is-error' : ''}`;
+      toast.innerHTML = `
+        <span class="toast-dot"></span>
+        <span>${escapeHTML(message)}</span>
+      `;
+      dom.toastContainer.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.add('is-visible');
+      });
+
+      setTimeout(() => {
+        toast.classList.remove('is-visible');
+        setTimeout(() => toast.remove(), 260);
+      }, 3400);
+    }
+
+    function stripZhuyinTones(str) {
+      return String(str || '').replace(/[ˊˇˋ˙\s]/g, '');
+    }
+
+    function containsZhuyin(str) {
+      return /[\u3105-\u312F\u02CA\u02C7\u02CB\u02D9]/.test(str);
+    }
+
+    function getCharZhuyinList(char, fallbackFirstCharZhuyin = '') {
+      const list = [];
+      if (ZHUYIN_DICT[char]) {
+        list.push(...ZHUYIN_DICT[char]);
+      }
+      if (fallbackFirstCharZhuyin && !list.includes(fallbackFirstCharZhuyin)) {
+        list.push(fallbackFirstCharZhuyin);
+      }
+      return list;
+    }
+
+    function getCharZhuyinConsumeLengths(char, isFirstChar, remainingQuery, firstCharFallbackZhuyin = '') {
+      const syllables = getCharZhuyinList(char, isFirstChar ? firstCharFallbackZhuyin : '');
+      const lengths = new Set();
+
+      syllables.forEach((syl) => {
+        const forms = [syl, stripZhuyinTones(syl)];
+        forms.forEach((form) => {
+          const maxLen = Math.min(form.length, remainingQuery.length);
+          for (let len = 1; len <= maxLen; len++) {
+            if (remainingQuery.startsWith(form.slice(0, len))) {
+              lengths.add(len);
+            }
+          }
+        });
+      });
+
+      return Array.from(lengths).sort((a, b) => b - a);
+    }
+
+    // 手機輸入法智慧多字注音序列比對（例如「ㄕㄨ」可同時命中「施文」與「淑」）
+    function matchZhuyinSequence(text, query, firstCharFallbackZhuyin = '') {
+      const cleanText = String(text || '');
+      const cleanQuery = String(query || '').replace(/\s+/g, '');
+      if (!cleanText || !cleanQuery) return null;
+
+      function dfs(charIdx, queryOffset) {
+        if (queryOffset === cleanQuery.length) return charIdx;
+        if (charIdx >= cleanText.length) return -1;
+
+        const remaining = cleanQuery.slice(queryOffset);
+        const lengths = getCharZhuyinConsumeLengths(
+          cleanText[charIdx],
+          charIdx === 0,
+          remaining,
+          firstCharFallbackZhuyin
+        );
+
+        for (const len of lengths) {
+          const endIdx = dfs(charIdx + 1, queryOffset + len);
+          if (endIdx !== -1) return endIdx;
+        }
+        return -1;
+      }
+
+      for (let startIdx = 0; startIdx < cleanText.length; startIdx++) {
+        const endIdx = dfs(startIdx, 0);
+        if (endIdx !== -1) {
+          return { start: startIdx, end: endIdx };
+        }
+      }
+      return null;
+    }
+
+    function matchTextSpan(text, query) {
+      const cleanText = String(text || '');
+      const cleanQuery = String(query || '').trim();
+      if (!cleanText || !cleanQuery) return null;
+
+      const idx = cleanText.toLowerCase().indexOf(cleanQuery.toLowerCase());
+      if (idx === -1) return null;
+      return { start: idx, end: idx + cleanQuery.length };
+    }
+
+    function renderHighlightedText(text, span) {
+      const safeText = String(text || '');
+      if (!span || span.start < 0 || span.end <= span.start) {
+        return escapeHTML(safeText);
+      }
+      const before = escapeHTML(safeText.slice(0, span.start));
+      const matched = escapeHTML(safeText.slice(span.start, span.end));
+      const after = escapeHTML(safeText.slice(span.end));
+      return `${before}<mark class="hl">${matched}</mark>${after}`;
+    }
+
+    function parseSafeInt(val, defaultVal = 0) {
+      if (typeof val === 'number' && !Number.isNaN(val)) {
+        return Math.max(0, Math.floor(val));
+      }
+      const match = String(val ?? '').match(/\d+/);
+      if (match) {
+        return Math.max(0, parseInt(match[0], 10));
+      }
+      return defaultVal;
+    }
+
+    // 智慧解析人數與「幾大幾小」（相容「2大1小」、「2大」、「2+1」、「3(2大1小)」、獨立「大人/小孩」欄位與純數字）
+    function parseHeadcountInfo(guest) {
+      const rawHead = String(guest.headcount ?? '').trim();
+      const hasExplicitAdults = guest.adults !== undefined && guest.adults !== null && String(guest.adults).trim() !== '';
+      const hasExplicitChildren = guest.children !== undefined && guest.children !== null && String(guest.children).trim() !== '';
+
+      let adults = hasExplicitAdults ? parseSafeInt(guest.adults, 0) : null;
+      let children = hasExplicitChildren ? parseSafeInt(guest.children, 0) : null;
+      let parsedTotalFromText = null;
+
+      if (rawHead) {
+        const adultMatch = rawHead.match(/(\d+)\s*(?:大|大人|成人)/);
+        const childMatch = rawHead.match(/(\d+)\s*(?:小|小孩|兒童|幼童|小朋友)/);
+        const plusMatch = !adultMatch && !childMatch ? rawHead.match(/^(\d+)\s*\+\s*(\d+)$/) : null;
+
+        if (adultMatch || childMatch) {
+          if (adults === null) adults = adultMatch ? parseInt(adultMatch[1], 10) : 0;
+          if (children === null) children = childMatch ? parseInt(childMatch[1], 10) : 0;
+        } else if (plusMatch) {
+          if (adults === null) adults = parseInt(plusMatch[1], 10);
+          if (children === null) children = parseInt(plusMatch[2], 10);
+        }
+
+        const leadingTotalMatch = rawHead.match(/^(\d+)\s*(?:位|人)?\s*[（(]/);
+        if (leadingTotalMatch) {
+          parsedTotalFromText = parseInt(leadingTotalMatch[1], 10);
+        } else if (/^\d+\s*(?:位|人)?$/.test(rawHead)) {
+          parsedTotalFromText = parseInt(rawHead.match(/\d+/)[0], 10);
+        }
+      }
+
+      if (parsedTotalFromText !== null) {
+        if (adults !== null && children === null) {
+          children = Math.max(0, parsedTotalFromText - adults);
+        } else if (children !== null && adults === null) {
+          adults = Math.max(0, parsedTotalFromText - children);
+        }
+      }
+
+      const hasBreakdown = adults !== null || children !== null;
+      if (hasBreakdown) {
+        const finalAdults = adults ?? 0;
+        const finalChildren = children ?? 0;
+        const sumSplit = finalAdults + finalChildren;
+        const total = parsedTotalFromText !== null ? Math.max(parsedTotalFromText, sumSplit) : sumSplit;
+        return {
+          total,
+          adults: finalAdults,
+          children: finalChildren,
+          hasBreakdown: true,
+          cardLabel: `${finalAdults}大${finalChildren}小（共 ${total} 位）`
+        };
+      }
+
+      const fallbackTotal = parsedTotalFromText !== null ? parsedTotalFromText : parseSafeInt(rawHead, 1);
+      return {
+        total: fallbackTotal,
+        adults: null,
+        children: null,
+        hasBreakdown: false,
+        cardLabel: `${fallbackTotal} 位`
+      };
+    }
+
+    function parseCakeInfo(cakeVal) {
+      const raw = String(cakeVal ?? '').trim();
+      if (!raw || ['否', '無', '不領', '不需要', '0', 'false', 'no'].includes(raw.toLowerCase())) {
+        return { needed: false, count: 0, label: '不領餅' };
+      }
+      if (['是', '要', '需要', 'true', 'yes'].includes(raw.toLowerCase())) {
+        return { needed: true, count: 1, label: '領喜餅 1 份' };
+      }
+      const numMatch = raw.match(/\d+/);
+      if (numMatch) {
+        const count = parseInt(numMatch[0], 10);
+        if (count <= 0) {
+          return { needed: false, count: 0, label: '不領餅' };
+        }
+        const label = /^\d+$/.test(raw) ? `領喜餅 ${count} 份` : `領喜餅 ${raw}`;
+        return { needed: true, count, label };
+      }
+      return { needed: true, count: 1, label: `領喜餅 (${raw})` };
+    }
+
+    /**
+     * ============================================================================
+     * 6. 動態聯動篩選選單與核心資料過濾引擎
+     * ============================================================================
+     */
+    function getCascadedBaseGuests(includeRelation = true) {
+      return state.guests.filter((g) => {
+        if (state.selectedSide && g.side !== state.selectedSide) return false;
+        if (includeRelation && state.selectedRelation && g.relation !== state.selectedRelation) return false;
+        return true;
+      });
+    }
+
+    function hasMatchingZhuyinInSubset(guestsSubset) {
+      const zhuyinFilterRaw = state.selectedZhuyin.trim();
+      if (!zhuyinFilterRaw) return true;
+      const zhuyinFilterNoTone = stripZhuyinTones(zhuyinFilterRaw);
+
+      return guestsSubset.some((g) => {
+        const groupStr = String(g.zhuyinGroup || '').trim();
+        const groupNoTone = stripZhuyinTones(groupStr);
+        return groupStr.includes(zhuyinFilterRaw) ||
+          (zhuyinFilterNoTone && groupNoTone.startsWith(zhuyinFilterNoTone));
+      });
+    }
+
+    function rebuildFilterOptions() {
+      const sideFilteredGuests = getCascadedBaseGuests(false);
+      const relationCounts = new Map();
+      sideFilteredGuests.forEach((g) => {
+        const rel = String(g.relation || '').trim();
+        if (rel) {
+          relationCounts.set(rel, (relationCounts.get(rel) || 0) + 1);
+        }
+      });
+
+      const preferredOrder = ['親人', '工作', '學校'];
+      const sortedRelations = Array.from(relationCounts.keys()).sort((a, b) => {
+        const idxA = preferredOrder.indexOf(a);
+        const idxB = preferredOrder.indexOf(b);
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+        if (idxA !== -1) return -1;
+        if (idxB !== -1) return 1;
+        return a.localeCompare(b, 'zh-Hant');
+      });
+
+      dom.relationSelect.innerHTML = [
+        `<option value="">關係：全部 (${sideFilteredGuests.length})</option>`,
+        ...sortedRelations.map(
+          (rel) => `<option value="${escapeHTML(rel)}">${escapeHTML(rel)} (${relationCounts.get(rel)})</option>`
+        )
+      ].join('');
+
+      if (state.selectedRelation && relationCounts.has(state.selectedRelation)) {
+        dom.relationSelect.value = state.selectedRelation;
+      } else {
+        state.selectedRelation = '';
+        dom.relationSelect.value = '';
+      }
+
+      renderZhuyinDropdown();
+    }
+
+    function renderZhuyinDropdown() {
+      const baseGuests = getCascadedBaseGuests(true);
+      const groupCounts = new Map();
+      baseGuests.forEach((g) => {
+        const zg = String(g.zhuyinGroup || '').trim();
+        if (zg) {
+          groupCounts.set(zg, (groupCounts.get(zg) || 0) + 1);
+        }
+      });
+
+      const sortedGroups = Array.from(groupCounts.keys()).sort((a, b) => {
+        const firstA = stripZhuyinTones(a)[0] || a[0] || '';
+        const firstB = stripZhuyinTones(b)[0] || b[0] || '';
+        const idxA = ZHUYIN_ORDER.indexOf(firstA);
+        const idxB = ZHUYIN_ORDER.indexOf(firstB);
+        if (idxA !== -1 && idxB !== -1 && idxA !== idxB) return idxA - idxB;
+        if (idxA !== -1 && idxB === -1) return -1;
+        if (idxA === -1 && idxB !== -1) return 1;
+        return a.localeCompare(b, 'zh-Hant');
+      });
+
+      const filterRaw = state.selectedZhuyin.trim();
+      const filterNoTone = stripZhuyinTones(filterRaw);
+
+      const visibleGroups = filterRaw
+        ? sortedGroups.filter((zg) => {
+            const zgNoTone = stripZhuyinTones(zg);
+            return zg.includes(filterRaw) || (filterNoTone && zgNoTone.startsWith(filterNoTone));
+          })
+        : sortedGroups;
+
+      const itemsHtml = [
+        `
+          <button
+            type="button"
+            data-zhuyin-option=""
+            class="zhuyin-option-btn ${state.selectedZhuyin === '' ? 'is-selected' : ''}"
+          >
+            <span>全部注音分組</span>
+            <span class="count-pill">${baseGuests.length} 組</span>
+          </button>
+        `,
+        ...visibleGroups.map((zg) => {
+          const isSelected = state.selectedZhuyin.trim() === zg;
+          return `
+            <button
+              type="button"
+              data-zhuyin-option="${escapeHTML(zg)}"
+              class="zhuyin-option-btn ${isSelected ? 'is-selected' : ''}"
+            >
+              <span class="zhuyin-option-left">
+                <span class="zhuyin-pill">${escapeHTML(zg)}</span>
+                <span>注音分組「${escapeHTML(zg)}」</span>
+              </span>
+              <span class="count-pill">${groupCounts.get(zg)} 組</span>
+            </button>
+          `;
+        })
+      ];
+
+      if (visibleGroups.length === 0) {
+        const emptyMsg = filterRaw
+          ? `目前篩選條件下沒有符合「${escapeHTML(filterRaw)}」的注音分組`
+          : '目前篩選條件下無注音分組資料';
+        itemsHtml.push(`<div class="dropdown-empty">${emptyMsg}</div>`);
+      }
+
+      dom.zhuyinDropdown.innerHTML = itemsHtml.join('');
+    }
+
+    function filterGuests() {
+      const zhuyinFilterRaw = state.selectedZhuyin.trim();
+      const zhuyinFilterNoTone = stripZhuyinTones(zhuyinFilterRaw);
+      const rawQuery = state.searchQuery.trim();
+      const queryLower = rawQuery.toLowerCase();
+      const isQueryZhuyin = containsZhuyin(rawQuery);
+
+      const results = [];
+
+      state.guests.forEach((guest, originalIndex) => {
+        if (state.selectedSide && guest.side !== state.selectedSide) return;
+        if (state.selectedRelation && guest.relation !== state.selectedRelation) return;
+
+        if (zhuyinFilterRaw) {
+          const groupStr = String(guest.zhuyinGroup || '').trim();
+          const groupNoTone = stripZhuyinTones(groupStr);
+          const matchGroup = groupStr.includes(zhuyinFilterRaw) ||
+            (zhuyinFilterNoTone && groupNoTone.startsWith(zhuyinFilterNoTone));
+          if (!matchGroup) return;
+        }
+
+        if (!rawQuery) {
+          results.push({ guest, nameSpan: null, nicknameSpan: null, score: 0, originalIndex });
+          return;
+        }
+
+        let nameSpan = matchTextSpan(guest.name, rawQuery);
+        let nicknameSpan = matchTextSpan(guest.nickname, rawQuery);
+
+        if (isQueryZhuyin) {
+          if (!nameSpan) {
+            nameSpan = matchZhuyinSequence(guest.name, rawQuery, guest.zhuyinGroup);
+          }
+          if (!nicknameSpan && guest.nickname) {
+            nicknameSpan = matchZhuyinSequence(guest.nickname, rawQuery);
+          }
+        }
+
+        const extraValues = guest.extras
+          ? Object.entries(guest.extras).map(([k, v]) => `${k} ${v}`).join(' ')
+          : '';
+        const otherSearchableText = [
+          guest.side,
+          guest.relation,
+          guest.zhuyinGroup,
+          guest.table,
+          extraValues
+        ].join(' ').toLowerCase();
+
+        const matchedOther = otherSearchableText.includes(queryLower);
+
+        if (!nameSpan && !nicknameSpan && !matchedOther) return;
+
+        let score = 10;
+        if (nameSpan) {
+          score = nameSpan.start === 0 ? 100 : 70;
+        } else if (nicknameSpan) {
+          score = nicknameSpan.start === 0 ? 85 : 60;
+        } else if (matchedOther) {
+          score = 30;
+        }
+
+        results.push({ guest, nameSpan, nicknameSpan, score, originalIndex });
+      });
+
+      if (rawQuery) {
+        results.sort((a, b) => (b.score - a.score) || (a.originalIndex - b.originalIndex));
+      }
+
+      return results;
+    }
+
+    /**
+     * ============================================================================
+     * 7. 畫面渲染：更新按鈕狀態、統計摘要與賓客名單卡片
+     * ============================================================================
+     */
+    function updateControlVisuals() {
+      dom.clearSearchInputBtn.classList.toggle('hidden', state.searchQuery.length === 0);
+      dom.clearZhuyinBtn.classList.toggle('hidden', state.selectedZhuyin.length === 0);
+
+      dom.btnSideGroom.classList.toggle('is-active', state.selectedSide === '男方');
+      dom.btnSideBride.classList.toggle('is-active', state.selectedSide === '女方');
+
+      const hasAnyFilter = Boolean(
+        state.searchQuery.trim() ||
+        state.selectedSide ||
+        state.selectedRelation ||
+        state.selectedZhuyin.trim()
+      );
+
+      dom.activeFilterHint.classList.toggle('hidden', !hasAnyFilter);
+      dom.clearAllBtn.classList.toggle('has-filters', hasAnyFilter);
+    }
+
+    function render() {
+      updateControlVisuals();
+      const filtered = filterGuests();
+
+      let totalHeadcount = 0;
+      let totalAdults = 0;
+      let totalChildren = 0;
+      let hasAnyBreakdown = false;
+      let totalCake = 0;
+      let totalVeg = 0;
+      let totalChair = 0;
+
+      filtered.forEach(({ guest: g }) => {
+        const hcInfo = parseHeadcountInfo(g);
+        totalHeadcount += hcInfo.total;
+        if (hcInfo.hasBreakdown) {
+          hasAnyBreakdown = true;
+          totalAdults += hcInfo.adults;
+          totalChildren += hcInfo.children;
+        }
+        const cakeInfo = parseCakeInfo(g.cake);
+        if (cakeInfo.needed) totalCake += cakeInfo.count;
+        totalVeg += parseSafeInt(g.vegetarian, 0);
+        totalChair += parseSafeInt(g.babyChair, 0);
+      });
+
+      dom.statGroups.textContent = `${filtered.length} 組`;
+      dom.statHeadcount.textContent = totalHeadcount;
+      if (hasAnyBreakdown) {
+        dom.statHeadcountDetail.textContent = `（${totalAdults}大${totalChildren}小）`;
+        dom.statHeadcountDetail.classList.remove('hidden');
+      } else {
+        dom.statHeadcountDetail.textContent = '';
+        dom.statHeadcountDetail.classList.add('hidden');
+      }
+      dom.statCake.textContent = totalCake;
+      dom.statVeg.textContent = totalVeg;
+      dom.statChair.textContent = totalChair;
+
+      if (filtered.length === 0) {
+        dom.guestListContainer.innerHTML = '';
+        dom.emptyState.classList.remove('hidden');
+        return;
+      }
+
+      dom.emptyState.classList.add('hidden');
+
+      dom.guestListContainer.innerHTML = filtered.map(({ guest, nameSpan, nicknameSpan }) => {
+        const isGroom = guest.side === '男方';
+        const isBride = guest.side === '女方';
+
+        const sideBadgeClass = isGroom
+          ? 'badge-side-groom'
+          : isBride
+            ? 'badge-side-bride'
+            : 'badge-side-neutral';
+
+        const tableBoxClass = isGroom ? 'is-groom' : isBride ? 'is-bride' : '';
+
+        const cakeInfo = parseCakeInfo(guest.cake);
+        const vegCount = parseSafeInt(guest.vegetarian, 0);
+        const chairCount = parseSafeInt(guest.babyChair, 0);
+        const hcInfo = parseHeadcountInfo(guest);
+
+        const highlightedNameHtml = renderHighlightedText(guest.name, nameSpan);
+        const highlightedNicknameHtml = guest.nickname
+          ? renderHighlightedText(guest.nickname, nicknameSpan)
+          : '';
+
+        const extraEntries = guest.extras
+          ? Object.entries(guest.extras).filter(([, val]) => val !== null && val !== undefined && String(val).trim() !== '')
+          : [];
+
+        const extrasHtml = extraEntries.length > 0
+          ? `
+            <div class="guest-extras">
+              ${extraEntries.map(([key, val]) => `
+                <span class="extra-tag">
+                  <strong>${escapeHTML(key)}：</strong>
+                  <span>${escapeHTML(val)}</span>
+                </span>
+              `).join('')}
+            </div>
+          `
+          : '';
+
+        return `
+          <article class="guest-card">
+            <div class="guest-card-inner">
+
+              <!-- 最醒目位置：座位(桌) 大字卡片 -->
+              <div class="table-box ${tableBoxClass}">
+                <span class="table-box-label">安排座位</span>
+                <span class="table-box-value">${escapeHTML(guest.table || '未排桌')}</span>
+              </div>
+
+              <!-- 中間與右側：姓名、身份分類與接待餐飲標記 -->
+              <div class="guest-main">
+                <div class="guest-top-row">
+
+                  <div class="guest-identity">
+                    <h2 class="guest-name">${highlightedNameHtml}</h2>
+
+                    ${guest.nickname ? `
+                      <span class="badge badge-nickname" title="賓客綽號">
+                        <span class="badge-nickname-prefix">綽號：</span>
+                        <span>${highlightedNicknameHtml}</span>
+                      </span>
+                    ` : ''}
+
+                    ${guest.zhuyinGroup ? `
+                      <span class="badge badge-zhuyin" title="姓名注音分組">
+                        注音 ${escapeHTML(guest.zhuyinGroup)}
+                      </span>
+                    ` : ''}
+
+                    ${guest.side ? `
+                      <span class="badge ${sideBadgeClass}">
+                        ${escapeHTML(guest.side)}
+                      </span>
+                    ` : ''}
+
+                    ${guest.relation ? `
+                      <span class="badge badge-relation">
+                        ${escapeHTML(guest.relation)}
+                      </span>
+                    ` : ''}
+                  </div>
+
+                  <div class="guest-needs">
+                    <span class="need-pill need-people">👥 ${escapeHTML(hcInfo.cardLabel)}</span>
+
+                    ${cakeInfo.needed ? `
+                      <span class="need-pill need-cake-yes">🎁 ${escapeHTML(cakeInfo.label)}</span>
+                    ` : `
+                      <span class="need-pill need-cake-no">不領餅</span>
+                    `}
+
+                    ${vegCount > 0 ? `
+                      <span class="need-pill need-veg">🥬 素食 ${vegCount} 份</span>
+                    ` : ''}
+
+                    ${chairCount > 0 ? `
+                      <span class="need-pill need-chair">👶 兒童椅 ${chairCount} 張</span>
+                    ` : ''}
+                  </div>
+                </div>
+
+                ${extrasHtml}
+              </div>
+
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    /**
+     * ============================================================================
+     * 8. Excel / CSV 匯入解析、本機離線暫存與範例檔下載
+     * ============================================================================
+     */
+    function identifyStandardField(headerName) {
+      const h = String(headerName || '').trim().replace(/\s+/g, '');
+      if (['姓名', '賓客姓名', '名字', 'name'].includes(h.toLowerCase())) return 'name';
+      if (['綽號', '暱稱', '別名', 'nickname'].includes(h.toLowerCase())) return 'nickname';
+      if (['男方/女方', '男/女方', '男女方', '雙方', '歸屬'].includes(h)) return 'side';
+      if (['關係', '關係(學校、工作、親人)', '關係分類', '群組'].includes(h)) return 'relation';
+      if (['姓名注音分組', '注音分組', '姓氏注音', '注音'].includes(h)) return 'zhuyinGroup';
+      if (['座位(桌)', '座位', '桌號', '桌次', '座次'].includes(h)) return 'table';
+      if (['人數', '出席人數', '賓客人數', '總人數'].includes(h)) return 'headcount';
+      if (['大人', '大人人數', '大人數', '成人', '成人人數', '成人數', 'adults'].includes(h.toLowerCase())) return 'adults';
+      if (['小孩', '小孩人數', '小孩數', '兒童', '兒童人數', '兒童數', '幼童', '小朋友', 'children'].includes(h.toLowerCase())) return 'children';
+      if (['是否領喜餅', '領喜餅', '喜餅', '喜餅數量'].includes(h)) return 'cake';
+      if (['素食', '素食份數', '素食人數'].includes(h)) return 'vegetarian';
+      if (['兒童椅數量', '兒童椅', '嬰兒椅數量', '嬰兒椅'].includes(h)) return 'babyChair';
+      return null;
+    }
+
+    function registerGuestZhuyin(guest) {
+      const firstChar = String(guest.name || '').trim()[0];
+      if (!firstChar) return;
+
+      if (!String(guest.zhuyinGroup || '').trim()) {
+        if (ZHUYIN_DICT[firstChar] && ZHUYIN_DICT[firstChar][0]) {
+          guest.zhuyinGroup = ZHUYIN_DICT[firstChar][0][0];
+        }
+      }
+
+      const zg = String(guest.zhuyinGroup || '').trim();
+      if (zg) {
+        if (!ZHUYIN_DICT[firstChar]) {
+          ZHUYIN_DICT[firstChar] = [zg];
+        } else if (!ZHUYIN_DICT[firstChar].includes(zg)) {
+          ZHUYIN_DICT[firstChar].push(zg);
+        }
+      }
+    }
+
+    function applyImportedGuests(parsedGuests, fileName, saveToStorage = true) {
+      state.guests = parsedGuests;
+      clearAllFilters(false);
+      rebuildFilterOptions();
+      render();
+
+      dom.dataSourceBadge.textContent = `已匯入：${fileName} (${parsedGuests.length}筆)`;
+      dom.dataSourceBadge.classList.add('is-imported');
+      dom.resetSampleBtn.classList.remove('hidden');
+
+      if (saveToStorage) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ fileName, guests: parsedGuests }));
+        } catch (_) {
+          // 忽略私密瀏覽模式下的 localStorage 限制
+        }
+      }
+    }
+
+    async function handleExcelFile(file) {
+      if (!file) return;
+      const lowerName = file.name.toLowerCase();
+
+      if (lowerName.endsWith('.xls') && !lowerName.endsWith('.xlsx')) {
+        showToast('舊版 .xls 格式請先在 Excel 另存為 .xlsx 或 .csv 再匯入喔！', 'error');
+        return;
+      }
+
+      try {
+        let rows = [];
+        if (lowerName.endsWith('.csv')) {
+          const text = await file.text();
+          rows = OfflineSpreadsheet.parseCsv(text);
+        } else {
+          const buffer = await file.arrayBuffer();
+          rows = await OfflineSpreadsheet.parseXlsx(buffer);
+        }
+
+        if (!rows || rows.length === 0) {
+          showToast('匯入的檔案沒有任何資料列，請檢查工作表內容。', 'error');
+          return;
+        }
+
+        const parsedGuests = [];
+        rows.forEach(row => {
+          const guest = {
+            name: '',
+            nickname: '',
+            side: '',
+            relation: '',
+            zhuyinGroup: '',
+            table: '',
+            headcount: 1,
+            adults: '',
+            children: '',
+            cake: '否',
+            vegetarian: 0,
+            babyChair: 0,
+            extras: {}
+          };
+
+          Object.entries(row).forEach(([rawKey, rawVal]) => {
+            if (rawKey.startsWith('__EMPTY')) return;
+            const standardKey = identifyStandardField(rawKey);
+            const cleanVal = typeof rawVal === 'string' ? rawVal.trim() : rawVal;
+
+            if (standardKey) {
+              guest[standardKey] = cleanVal;
+            } else {
+              guest.extras[rawKey.trim()] = cleanVal;
+            }
+          });
+
+          if (!String(guest.name || '').trim()) return;
+          registerGuestZhuyin(guest);
+          parsedGuests.push(guest);
+        });
+
+        if (parsedGuests.length === 0) {
+          showToast('找不到有效的「姓名」欄位資料，請參考範例 Excel 格式。', 'error');
+          return;
+        }
+
+        applyImportedGuests(parsedGuests, file.name, true);
+        showToast(`成功匯入「${file.name}」，共載入 ${parsedGuests.length} 筆賓客資料！`);
+      } catch (err) {
+        console.error(err);
+        showToast('讀取檔案失敗，請確認為標準 .xlsx 或 .csv 檔案。', 'error');
+      }
+    }
+
+    function downloadSampleExcel() {
+      try {
+        const exportRows = DEFAULT_GUESTS.map(g => ({
+          '姓名': g.name,
+          '綽號': g.nickname || '',
+          '男方/女方': g.side,
+          '關係': g.relation,
+          '姓名注音分組': g.zhuyinGroup,
+          '座位(桌)': g.table,
+          '人數': g.headcount,
+          '是否領喜餅': g.cake,
+          '素食': g.vegetarian,
+          '兒童椅數量': g.babyChair,
+          ...(g.extras || {})
+        }));
+
+        const blob = OfflineSpreadsheet.createXlsxBlob(exportRows);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '婚禮收禮與座位名單_範例.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        showToast('已離線產生並下載「婚禮收禮與座位名單_範例.xlsx」');
+      } catch (err) {
+        console.error(err);
+        showToast('產生範例檔案時發生錯誤。', 'error');
+      }
+    }
+
+    function restoreDefaultSample() {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (_) {}
+      state.guests = [...DEFAULT_GUESTS];
+      clearAllFilters(false);
+      rebuildFilterOptions();
+      render();
+      dom.dataSourceBadge.textContent = `內建範例名單 (${DEFAULT_GUESTS.length}筆)`;
+      dom.dataSourceBadge.classList.remove('is-imported');
+      dom.resetSampleBtn.classList.add('hidden');
+      showToast('已恢復為內建 16 筆範例名單');
+    }
+
+    /**
+     * ============================================================================
+     * 9. 事件監聽器與互動邏輯
+     * ============================================================================
+     */
+    function clearAllFilters(shouldRender = true) {
+      state.searchQuery = '';
+      state.selectedSide = '';
+      state.selectedRelation = '';
+      state.selectedZhuyin = '';
+      state.isZhuyinDropdownOpen = false;
+
+      dom.searchInput.value = '';
+      dom.relationSelect.value = '';
+      dom.zhuyinInput.value = '';
+      dom.zhuyinDropdown.classList.add('hidden');
+      rebuildFilterOptions();
+
+      if (shouldRender) {
+        render();
+      }
+    }
+
+    const handleSearchInputEvent = (e) => {
+      state.searchQuery = e.target.value;
+      render();
+    };
+    dom.searchInput.addEventListener('input', handleSearchInputEvent);
+    dom.searchInput.addEventListener('compositionupdate', handleSearchInputEvent);
+    dom.searchInput.addEventListener('compositionend', handleSearchInputEvent);
+
+    dom.clearSearchInputBtn.addEventListener('click', () => {
+      state.searchQuery = '';
+      dom.searchInput.value = '';
+      dom.searchInput.focus();
+      render();
+    });
+
+    [dom.btnSideGroom, dom.btnSideBride].forEach(btn => {
+      btn.addEventListener('click', () => {
+        const clickedSide = btn.dataset.side;
+        state.selectedSide = state.selectedSide === clickedSide ? '' : clickedSide;
+
+        const sideGuests = getCascadedBaseGuests(false);
+        if (state.selectedRelation && !sideGuests.some(g => String(g.relation || '').trim() === state.selectedRelation)) {
+          state.selectedRelation = '';
+        }
+
+        const cascadedGuests = getCascadedBaseGuests(true);
+        if (state.selectedZhuyin && !hasMatchingZhuyinInSubset(cascadedGuests)) {
+          state.selectedZhuyin = '';
+          dom.zhuyinInput.value = '';
+        }
+
+        rebuildFilterOptions();
+        render();
+      });
+    });
+
+    dom.relationSelect.addEventListener('change', (e) => {
+      state.selectedRelation = e.target.value;
+
+      const cascadedGuests = getCascadedBaseGuests(true);
+      if (state.selectedZhuyin && !hasMatchingZhuyinInSubset(cascadedGuests)) {
+        state.selectedZhuyin = '';
+        dom.zhuyinInput.value = '';
+      }
+
+      renderZhuyinDropdown();
+      render();
+    });
+
+    function openZhuyinDropdown() {
+      state.isZhuyinDropdownOpen = true;
+      renderZhuyinDropdown();
+      dom.zhuyinDropdown.classList.remove('hidden');
+    }
+
+    function closeZhuyinDropdown() {
+      state.isZhuyinDropdownOpen = false;
+      dom.zhuyinDropdown.classList.add('hidden');
+    }
+
+    dom.zhuyinInput.addEventListener('focus', openZhuyinDropdown);
+    dom.zhuyinInput.addEventListener('click', openZhuyinDropdown);
+
+    dom.zhuyinInput.addEventListener('input', (e) => {
+      state.selectedZhuyin = e.target.value;
+      openZhuyinDropdown();
+      render();
+    });
+
+    dom.toggleZhuyinDropdownBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (state.isZhuyinDropdownOpen) {
+        closeZhuyinDropdown();
+      } else {
+        openZhuyinDropdown();
+        dom.zhuyinInput.focus();
+      }
+    });
+
+    dom.clearZhuyinBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      state.selectedZhuyin = '';
+      dom.zhuyinInput.value = '';
+      renderZhuyinDropdown();
+      render();
+    });
+
+    dom.zhuyinDropdown.addEventListener('click', (e) => {
+      const optionBtn = e.target.closest('[data-zhuyin-option]');
+      if (!optionBtn) return;
+      const val = optionBtn.dataset.zhuyinOption;
+      state.selectedZhuyin = val;
+      dom.zhuyinInput.value = val;
+      closeZhuyinDropdown();
+      render();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!dom.zhuyinComboContainer.contains(e.target)) {
+        closeZhuyinDropdown();
+      }
+    });
+
+    dom.clearAllBtn.addEventListener('click', () => clearAllFilters(true));
+    dom.emptyClearBtn.addEventListener('click', () => clearAllFilters(true));
+    dom.resetSampleBtn.addEventListener('click', restoreDefaultSample);
+
+    dom.excelFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        handleExcelFile(file);
+        e.target.value = '';
+      }
+    });
+
+    dom.downloadSampleBtn.addEventListener('click', downloadSampleExcel);
+
+    let dragCounter = 0;
+    window.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      dragCounter++;
+      dom.dropOverlay.classList.remove('hidden');
+    });
+
+    window.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dragCounter--;
+      if (dragCounter <= 0) {
+        dragCounter = 0;
+        dom.dropOverlay.classList.add('hidden');
+      }
+    });
+
+    window.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    window.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dragCounter = 0;
+      dom.dropOverlay.classList.add('hidden');
+      const file = e.dataTransfer?.files?.[0];
+      if (file) {
+        handleExcelFile(file);
+      }
+    });
+
+    // 初始化系統：優先檢查本機是否有先前匯入並儲存的離線名單
+    window.addEventListener('DOMContentLoaded', () => {
+      let restored = false;
+      try {
+        const cachedRaw = localStorage.getItem(STORAGE_KEY);
+        if (cachedRaw) {
+          const parsed = JSON.parse(cachedRaw);
+          if (parsed && Array.isArray(parsed.guests) && parsed.guests.length > 0) {
+            parsed.guests.forEach(registerGuestZhuyin);
+            applyImportedGuests(parsed.guests, parsed.fileName || '本機記憶名單', false);
+            restored = true;
+          }
+        }
+      } catch (_) {}
+
+      if (!restored) {
+        rebuildFilterOptions();
+        render();
+      }
+    });
+  </script>
+</body>
+</html>
